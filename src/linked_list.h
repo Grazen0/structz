@@ -1,5 +1,5 @@
-#ifndef LINKED_LIST_HPP
-#define LINKED_LIST_HPP
+#ifndef DATA_STRUCTURES_LINKED_LIST_H
+#define DATA_STRUCTURES_LINKED_LIST_H
 
 #include <cstddef>
 #include <stdexcept>

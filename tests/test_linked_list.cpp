@@ -1,6 +1,6 @@
-#include "../linked_list.hpp"
 #include <catch2/catch_test_macros.hpp>
 #include <stdexcept>
+#include "linked_list.h"
 
 TEST_CASE("linked lists can be constructed", "[linked_list]") {
     const LinkedList<int> list;
