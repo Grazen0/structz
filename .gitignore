@@ -1,5 +1,6 @@
-.idea/
-cmake-build-debug/
+.cache/
 .direnv/
-result/
+.idea/
 build/
+cmake-build-debug/
+result/
