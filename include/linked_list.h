@@ -5,7 +5,6 @@
 #include <iterator>
 #include <stdexcept>
 #include <utility>
-#include <vector>
 
 template<typename T>
 class LinkedList {

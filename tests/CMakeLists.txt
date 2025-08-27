@@ -1,14 +1,14 @@
 find_package(Catch2 3 REQUIRED)
 
-set(test_sources test_linked_list.cpp)
+set(TEST_SOURCES test_linked_list.cpp)
 
-foreach(test_source ${test_sources})
-    get_filename_component(test_name ${test_source} NAME_WE)
-    set(test_exec ${test_name})
+foreach(TEST_SOURCE ${TEST_SOURCES})
+    get_filename_component(TEST_NAME ${TEST_SOURCE} NAME_WE)
+    set(TEST_EXEC ${TEST_NAME})
 
-    add_executable(${test_exec} ${test_source})
-    target_link_libraries(${test_exec} PRIVATE structz)
-    target_link_libraries(${test_exec} PRIVATE Catch2::Catch2WithMain)
+    add_executable(${TEST_EXEC} ${TEST_SOURCE})
+    target_link_libraries(${TEST_EXEC} PRIVATE structz)
+    target_link_libraries(${TEST_EXEC} PRIVATE Catch2::Catch2WithMain)
 
-    add_test(NAME ${test_name} COMMAND ${test_exec})
+    add_test(NAME ${TEST_NAME} COMMAND ${TEST_EXEC})
 endforeach()

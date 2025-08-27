@@ -1,19 +1,56 @@
 cmake_minimum_required(VERSION 3.11)
-project(structz)
+project(structz LANGUAGES CXX VERSION 0.1.0)
 
 set(CMAKE_CXX_STANDARD 17)
+set(CMAKE_CXX_STANDARD_REQUIRED 17)
+set(CMAKE_CXX_STANDARD_EXTENSIONS OFF)
+
 set(CMAKE_EXPORT_COMPILE_COMMANDS ON)
 
-set(sources src/linked_list.cpp)
+add_library(structz src/linked_list.cpp)
+target_include_directories(structz PUBLIC  
+    $<BUILD_INTERFACE:${CMAKE_CURRENT_SOURCE_DIR}/include>
+    $<INSTALL_INTERFACE:include>
+)
 
 if(MSVC)
-  add_compile_options(/W4 /WX)
+    target_compile_options(structz PRIVATE /W4 /WX)
 else()
-  add_compile_options(-Wall -Wextra -Wpedantic -Werror)
+    target_compile_options(structz PRIVATE -Wall -Wextra -Wpedantic -Werror)
 endif()
 
-add_library(structz ${sources})
-target_include_directories(structz PUBLIC src)
 
-include(CTest)
-add_subdirectory(tests)
+if(CMAKE_PROJECT_NAME STREQUAL PROJECT_NAME)
+    include(CTest)
+    if(BUILD_TESTING)
+        add_subdirectory(tests)
+    endif()
+endif()
+
+install(TARGETS structz
+    EXPORT structzTargets
+    LIBRARY DESTINATION lib
+    ARCHIVE DESTINATION lib
+    RUNTIME DESTINATION bin
+    INCLUDES DESTINATION include
+)
+
+include(CMakePackageConfigHelpers)
+write_basic_package_version_file(
+    structzConfigVersion.cmake
+    VERSION ${PACKAGE_VERSION}
+    COMPATIBILITY AnyNewerVersion
+)
+
+install(EXPORT structzTargets
+    FILE structzConfig.cmake
+    NAMESPACE structz::
+    DESTINATION lib/cmake/structz
+)
+
+install(FILES
+        "${CMAKE_CURRENT_SOURCE_DIR}/cmake/structzConfig.cmake"
+        "${CMAKE_CURRENT_BINARY_DIR}/structzConfigVersion.cmake"
+    DESTINATION ${CMAKE_INSTALL_LIBDIR}/cmake/structz
+)
+
