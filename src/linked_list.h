@@ -2,6 +2,7 @@
 #define DATA_STRUCTURES_LINKED_LIST_H
 
 #include <cstddef>
+#include <iterator>
 #include <stdexcept>
 #include <utility>
 #include <vector>
@@ -18,6 +19,78 @@ class LinkedList {
         Node(T data, Node* const next)
             : data(std::move(data)),
               next(next) {}
+    };
+
+    class iterator {
+        Node* cur;
+
+    public:
+        using iterator_category = std::forward_iterator_tag;
+        using value_type = T;
+        using pointer = T*;
+        using reference = T&;
+
+        iterator(Node* const head)
+            : cur(head) {}
+
+        iterator& operator++() {
+            cur = cur->next;
+            return *this;
+        }
+
+        iterator operator++(int) {
+            iterator retval = *this;
+            ++(*this);
+            return retval;
+        }
+
+        bool operator==(const iterator& other) const {
+            return this->cur == other.cur;
+        }
+
+        bool operator!=(const iterator& other) const {
+            return !(*this == other);
+        }
+
+        value_type& operator*() {
+            return cur->data;
+        }
+    };
+
+    class const_iterator {
+        const Node* cur;
+
+    public:
+        using iterator_category = std::forward_iterator_tag;
+        using value_type = const T;
+        using pointer = const T*;
+        using reference = const T&;
+
+        const_iterator(const Node* const head)
+            : cur(head) {}
+
+        const_iterator& operator++() {
+            cur = cur->next;
+            return *this;
+        }
+
+        const_iterator operator++(int) {
+            iterator retval = *this;
+            ++(*this);
+            return retval;
+        }
+
+        bool operator==(const const_iterator& other) const {
+            return this->cur == other.cur;
+        }
+
+        bool operator!=(const const_iterator& other) const {
+            return !(*this == other);
+        }
+
+        value_type& operator*() {
+            return cur->data;
+        }
     };
 
     Node* m_head = nullptr;
@@ -203,6 +276,22 @@ public:
 
         m_head->next = nullptr;
         m_head = cur_first;
+    }
+
+    iterator begin() {
+        return iterator(m_head);
+    }
+
+    iterator end() {
+        return iterator(nullptr);
+    }
+
+    const_iterator begin() const {
+        return const_iterator(m_head);
+    }
+
+    const_iterator end() const {
+        return const_iterator(nullptr);
     }
 };
 

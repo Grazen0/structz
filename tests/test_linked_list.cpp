@@ -1,4 +1,5 @@
 #include <catch2/catch_test_macros.hpp>
+#include <iostream>
 #include <stdexcept>
 #include "linked_list.h"
 
@@ -94,4 +95,22 @@ TEST_CASE("can perform multiple operations on a linked list", "[linked_list]") {
     list.push_back(42);
 
     REQUIRE(list[0] == 42);
+}
+
+TEST_CASE("linked lists can be iterated", "[linked_list]") {
+    LinkedList<int> list;
+    list.push_back(1);
+    list.push_back(2);
+    list.push_back(3);
+    list.push_back(4);
+    list.push_back(5);
+
+    auto it = list.begin();
+
+    REQUIRE(*(it++) == 1);
+    REQUIRE(*(it++) == 2);
+    REQUIRE(*(it++) == 3);
+    REQUIRE(*(it++) == 4);
+    REQUIRE(*(it++) == 5);
+    REQUIRE(it == list.end());
 }
