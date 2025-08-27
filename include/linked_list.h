@@ -182,9 +182,9 @@ public:
 
         const T data = std::move(m_head->data);
 
-        Node* const prev_head = m_head;
-        m_head = m_head->next;
-        delete prev_head;
+        Node* const new_head = m_head->next;
+        delete m_head;
+        m_head = new_head;
 
         --m_size;
         return data;
@@ -201,8 +201,7 @@ public:
 
         const T data = std::move((*cur)->data);
 
-        Node* prev_tail = *cur;
-        delete prev_tail;
+        delete *cur;
         *cur = nullptr;
 
         --m_size;
