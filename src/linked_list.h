@@ -1,5 +1,5 @@
-#ifndef DATA_STRUCTURES_LINKED_LIST_H
-#define DATA_STRUCTURES_LINKED_LIST_H
+#ifndef STRUCTZ_LINKED_LIST_H
+#define STRUCTZ_LINKED_LIST_H
 
 #include <cstddef>
 #include <iterator>

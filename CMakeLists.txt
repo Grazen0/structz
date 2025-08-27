@@ -1,5 +1,5 @@
 cmake_minimum_required(VERSION 3.11)
-project(data_structures)
+project(structz)
 
 set(CMAKE_CXX_STANDARD 17)
 set(CMAKE_EXPORT_COMPILE_COMMANDS ON)
@@ -12,8 +12,8 @@ else()
   add_compile_options(-Wall -Wextra -Wpedantic -Werror)
 endif()
 
-add_library(data_structures ${sources})
-target_include_directories(data_structures PUBLIC src)
+add_library(structz ${sources})
+target_include_directories(structz PUBLIC src)
 
 include(CTest)
 add_subdirectory(tests)
