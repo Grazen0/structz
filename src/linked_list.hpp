@@ -2,123 +2,113 @@
 #define LINKED_LIST_HPP
 
 #include <cstddef>
+#include <stdexcept>
 #include <utility>
-
-template<typename T>
-struct Node {
-    T data;
-    Node<T>* next = nullptr;
-};
+#include <vector>
 
 template<typename T>
 class LinkedList {
-    Node<T>* m_head = nullptr;
+    struct Node {
+        T data;
+        Node* next = nullptr;
+
+        Node(T data)
+            : data(std::move(data)) {}
+
+        Node(T data, Node* const next)
+            : data(std::move(data)),
+              next(next) {}
+    };
+
+    Node* m_head = nullptr;
     size_t m_size = 0;
 
 public:
-    LinkedList();
-    LinkedList(const LinkedList<T>& other);
-    LinkedList(LinkedList<T>&& other) noexcept;
+    LinkedList() = default;
 
-    ~LinkedList();
+    LinkedList(const LinkedList<T>& other)
+        : m_size(other.m_size) {
+        Node** this_cur = &m_head;
+        Node* other_cur = other.m_head;
 
-    [[nodiscard]] size_t size() const;
-    [[nodiscard]] bool is_empty() const;
+        while (other_cur != nullptr) {
+            *this_cur = new Node(other_cur->data);
+            this_cur = &(*this_cur)->next;
+            other_cur = other_cur->next;
+        }
+    }
 
-    template<typename Tt>
-    void prepend(Tt data);
+    LinkedList(LinkedList<T>&& other) noexcept {
+        std::swap(m_head, other.m_head);
+        std::swap(m_size, other.m_size);
+    }
 
-    template<typename Tt>
-    void append(Tt data);
+    ~LinkedList() {
+        Node* cur = m_head;
 
-    T const& get_at(size_t index) const;
-    T& get_at(size_t index);
+        while (cur != nullptr) {
+            Node* const next = cur->next;
+            delete cur;
+            cur = next;
+        }
+    }
 
-    LinkedList<T>& operator=(LinkedList<T> other);
-    LinkedList<T>& operator=(LinkedList<T>&& other) noexcept;
+    T& front() {
+        if (m_head == nullptr)
+            throw std::runtime_error("list is empty");
+
+        return m_head->data;
+    }
+
+    const T& front() const {
+        if (m_head == nullptr)
+            throw std::runtime_error("list is empty");
+
+        return m_head->data;
+    }
+
+    [[nodiscard]] size_t size() const {
+        return m_size;
+    }
+
+    [[nodiscard]] bool empty() const {
+        return m_size == 0;
+    }
+
+    void push_front(T data) {
+        m_head = new Node(std::move(data), m_head);
+        ++m_size;
+    }
+
+    // TODO: implement
+    LinkedList<T>& operator=(LinkedList<T> other) = delete;
+
+    // TODO: implement
+    LinkedList<T>& operator=(LinkedList<T>&& other) noexcept = delete;
+
+    T const& operator[](const size_t index) const {
+        if (index >= m_size)
+            throw std::out_of_range("list index out of bounds");
+
+        Node* cur = m_head;
+
+        for (size_t i = 0; i < index; ++i)
+            cur = cur->next;
+
+        return cur->data;
+    }
+
+    T& operator[](const size_t index) {
+        if (index >= m_size)
+            throw std::out_of_range("list index out of bounds");
+
+        Node* cur = m_head;
+
+        for (size_t i = 0; i < index; ++i)
+            cur = cur->next;
+
+        return cur->data;
+    }
 };
-
-template<typename T>
-LinkedList<T>::LinkedList() = default;
-
-template<typename T>
-LinkedList<T>::LinkedList(const LinkedList<T>& other)
-    : m_size(other.m_size) {
-    auto*& this_current = this->m_head;
-    auto* other_current = other.m_head;
-
-    while (other_current != nullptr) {
-        this_current = new Node<T>(other_current->data);
-        this_current = this_current->next;
-        other_current = other_current->next;
-    }
-}
-
-template<typename T>
-LinkedList<T>::LinkedList(LinkedList<T>&& other) noexcept
-    : LinkedList() {
-    std::swap(this->m_head, other.m_head);
-    std::swap(this->m_size, other.m_size);
-}
-
-template<typename T>
-LinkedList<T>::~LinkedList() {
-    auto* current = this->m_head;
-
-    while (current != nullptr) {
-        auto* next = current->next;
-        delete current;
-        current = next;
-    }
-}
-
-template<typename T>
-size_t LinkedList<T>::size() const {
-    return this->m_size;
-}
-
-template<typename T>
-bool LinkedList<T>::is_empty() const {
-    return this->m_size == 0;
-}
-
-template<typename T>
-template<typename Tt>
-void LinkedList<T>::prepend(Tt data) {
-    auto* node = new Node<T>();
-    node->data = data;
-    node->next = std::exchange(this->m_head, node);
-    this->m_size++;
-}
-
-template<typename T>
-T const& LinkedList<T>::get_at(size_t index) const {
-    if (index >= this->m_size) {
-        throw "linked list index out of bounds";
-    }
-
-    auto* current = this->m_head;
-
-    for (; index != 0; index--) {
-        current = current->next;
-    }
-
-    return current->data;
-}
-
-template<typename T>
-T& LinkedList<T>::get_at(size_t index) {
-    if (index >= this->m_size) {
-        throw "linked list index out of bounds";
-    }
-
-    auto* current = this->m_head;
-
-    for (; index != 0; index--) {
-        current = current->next;
-    }
-
-    return current->data;
-}
 
 #endif
