@@ -183,9 +183,7 @@ public:
         const T data = std::move(m_head->data);
 
         Node* const new_head = m_head->next;
-        delete m_head;
-        m_head = new_head;
-
+        delete std::exchange(m_head, new_head);
         --m_size;
         return data;
     }
@@ -200,10 +198,7 @@ public:
             cur = &(*cur)->next;
 
         const T data = std::move((*cur)->data);
-
-        delete *cur;
-        *cur = nullptr;
-
+        delete std::exchange(*cur, nullptr);
         --m_size;
         return data;
     }
@@ -232,23 +227,19 @@ public:
         return cur->data;
     }
 
-    [[nodiscard]] bool empty() const {
+    [[nodiscard]] bool empty() const noexcept {
         return m_size == 0;
     }
 
-    [[nodiscard]] size_t size() const {
+    [[nodiscard]] size_t size() const noexcept {
         return m_size;
     }
 
     void clear() {
-        Node* cur = m_head;
-        m_head = nullptr;
+        Node* cur = std::exchange(m_head, nullptr);
 
-        while (cur != nullptr) {
-            Node* const next = cur->next;
-            delete cur;
-            cur = next;
-        }
+        while (cur != nullptr)
+            delete std::exchange(cur, cur->next);
 
         m_size = 0;
     }
