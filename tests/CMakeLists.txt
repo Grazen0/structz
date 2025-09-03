@@ -1,6 +1,6 @@
 find_package(Catch2 3 REQUIRED)
 
-set(TEST_SOURCES test_linked_list.cpp)
+set(TEST_SOURCES test_linked_list.cpp test_doubly_linked_list.cpp)
 
 foreach(TEST_SOURCE ${TEST_SOURCES})
     get_filename_component(TEST_NAME ${TEST_SOURCE} NAME_WE)
