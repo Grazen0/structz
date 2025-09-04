@@ -7,7 +7,10 @@ set(CMAKE_CXX_STANDARD_EXTENSIONS OFF)
 
 set(CMAKE_EXPORT_COMPILE_COMMANDS ON)
 
-add_library(structz src/linked_list.cpp)
+add_library(structz
+    src/linked_list.cpp
+    src/doubly_linked_list.cpp
+    src/stack.cpp)
 target_include_directories(structz PUBLIC  
     $<BUILD_INTERFACE:${CMAKE_CURRENT_SOURCE_DIR}/include>
     $<INSTALL_INTERFACE:include>
