@@ -50,7 +50,7 @@ class LinkedList {
         }
 
         bool operator==(const iterator& other) const {
-            return this->cur == other.cur;
+            return cur == other.cur;
         }
 
         bool operator!=(const iterator& other) const {
