@@ -21,7 +21,9 @@ class LinkedList {
     };
 
     class iterator {
-        Node* cur;
+        Node** cur;
+
+        friend class LinkedList<T>;
 
     public:
         using iterator_category = std::forward_iterator_tag;
@@ -29,11 +31,15 @@ class LinkedList {
         using pointer = T*;
         using reference = T&;
 
-        iterator(Node* const head)
+        iterator(Node** const head)
             : cur(head) {}
 
         iterator& operator++() {
-            cur = cur->next;
+            cur = &(*cur)->next;
+
+            if (*cur == nullptr)
+                cur = nullptr;
+
             return *this;
         }
 
@@ -52,7 +58,7 @@ class LinkedList {
         }
 
         value_type& operator*() {
-            return cur->data;
+            return (*cur)->data;
         }
     };
 
@@ -203,6 +209,11 @@ public:
         return data;
     }
 
+    void remove(const iterator& it) {
+        delete std::exchange(*it.cur, (*it.cur)->next);
+        --m_size;
+    }
+
     [[nodiscard]] const T& operator[](const size_t index) const {
         if (index >= m_size)
             throw std::out_of_range("list index out of bounds");
@@ -244,10 +255,6 @@ public:
         m_size = 0;
     }
 
-    void sort() {
-        // TODO: implement
-    }
-
     void reverse() {
         if (m_size <= 1)
             return;
@@ -268,7 +275,7 @@ public:
     }
 
     iterator begin() {
-        return iterator(m_head);
+        return iterator(m_head == nullptr ? nullptr : &m_head);
     }
 
     iterator end() {

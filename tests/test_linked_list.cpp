@@ -1,6 +1,7 @@
 #include <catch2/catch_test_macros.hpp>
 #include <iostream>
 #include <stdexcept>
+#include <vector>
 #include "linked_list.h"
 
 TEST_CASE("linked lists can be constructed", "[linked_list]") {
@@ -113,4 +114,117 @@ TEST_CASE("linked lists can be iterated", "[linked_list]") {
     REQUIRE(*(it++) == 4);
     REQUIRE(*(it++) == 5);
     REQUIRE(it == list.end());
+}
+
+TEST_CASE("linked lists support remove() with iterator", "[linked_list]") {
+    LinkedList<int> list;
+    list.push_back(10);
+    list.push_back(20);
+    list.push_back(30);
+    list.push_back(40);
+
+    SECTION("remove from the middle") {
+        auto it = list.begin();
+        ++it;  // points to 20
+        list.remove(it);
+
+        REQUIRE(list.size() == 3);
+        REQUIRE(list[0] == 10);
+        REQUIRE(list[1] == 30);
+        REQUIRE(list[2] == 40);
+    }
+
+    SECTION("remove first element") {
+        auto it = list.begin();  // points to 10
+        list.remove(it);
+
+        REQUIRE(list.size() == 3);
+        REQUIRE(list[0] == 20);
+        REQUIRE(list.front() == 20);
+    }
+
+    SECTION("remove last element") {
+        auto it = list.begin();
+        ++it;
+        ++it;
+        ++it;  // points to 40
+        list.remove(it);
+
+        REQUIRE(list.size() == 3);
+        REQUIRE(list[2] == 30);
+        REQUIRE(list.back() == 30);
+    }
+
+    SECTION("remove only element") {
+        LinkedList<int> single;
+        single.push_back(99);
+        auto it = single.begin();
+        single.remove(it);
+
+        REQUIRE(single.empty());
+        REQUIRE(single.size() == 0);
+    }
+
+    SECTION("remove multiple elements in sequence") {
+        auto it = list.begin();
+        ++it;             // points to 20
+        list.remove(it);  // remove 20
+
+        it = list.begin();
+        ++it;             // now points to 30
+        list.remove(it);  // remove 30
+
+        REQUIRE(list.size() == 2);
+        REQUIRE(list[0] == 10);
+        REQUIRE(list[1] == 40);
+    }
+}
+
+TEST_CASE("empty linked list does not iterate", "[linked_list]") {
+    std::vector<int> result;
+    LinkedList<int> list;
+
+    for (auto& el : list)
+        result.push_back(el);
+
+    REQUIRE(result == std::vector<int>{});
+}
+
+TEST_CASE("iterator validity and behavior", "[linked_list]") {
+    LinkedList<int> list;
+    list.push_back(1);
+    list.push_back(2);
+    list.push_back(3);
+    list.push_back(4);
+
+    SECTION("post-increment returns old value, advances iterator") {
+        auto it = list.begin();
+        auto old = it++;
+        REQUIRE(*old == 1);
+        REQUIRE(*it == 2);
+    }
+
+    SECTION("pre-increment advances iterator, returns new value") {
+        auto it = list.begin();
+        auto& ref = ++it;
+        REQUIRE(&ref == &it);  // pre-increment returns same object
+        REQUIRE(*it == 2);
+    }
+
+    SECTION("iterators can traverse from begin to end") {
+        std::vector<int> values;
+        for (int& el : list) {
+            values.push_back(el);
+        }
+        REQUIRE(values == std::vector<int>{1, 2, 3, 4});
+    }
+
+    SECTION("iterator equality and inequality works") {
+        auto it1 = list.begin();
+        auto it2 = list.begin();
+        REQUIRE(it1 == it2);
+
+        ++it2;
+        REQUIRE(it1 != it2);
+    }
 }
