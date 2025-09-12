@@ -12,7 +12,7 @@ class LinkedList {
         T data;
         Node* next = nullptr;
 
-        Node(T data)
+        explicit Node(T data)
             : data(std::move(data)) {}
 
         Node(T data, Node* const next)
@@ -31,7 +31,7 @@ class LinkedList {
         using pointer = T*;
         using reference = T&;
 
-        iterator(Node** const head)
+        explicit iterator(Node** const head)
             : cur(head) {}
 
         iterator& operator++() {
@@ -101,6 +101,11 @@ class LinkedList {
     Node* m_head = nullptr;
     size_t m_size = 0;
 
+    void swap(LinkedList<T>& other) noexcept {
+        std::swap(m_head, other.m_head);
+        std::swap(m_size, other.m_size);
+    }
+
 public:
     LinkedList() = default;
 
@@ -117,17 +122,22 @@ public:
     }
 
     LinkedList(LinkedList<T>&& other) noexcept {
-        std::swap(m_head, other.m_head);
-        std::swap(m_size, other.m_size);
+        swap(other);
     }
 
     ~LinkedList() {
         clear();
     }
 
-    LinkedList<T>& operator=(const LinkedList<T>& other) = delete;
+    LinkedList<T>& operator=(const LinkedList<T>& other) {
+        LinkedList<T>(other).swap(*this);
+        return *this;
+    }
 
-    LinkedList<T>& operator=(LinkedList<T>&& other) noexcept = delete;
+    LinkedList<T>& operator=(LinkedList<T>&& other) noexcept {
+        swap(other);
+        return *this;
+    }
 
     [[nodiscard]] T& front() {
         if (m_head == nullptr)
