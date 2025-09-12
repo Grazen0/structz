@@ -4,7 +4,8 @@ set(TEST_SOURCES
     test_linked_list.cpp
     test_hash_map.cpp
     test_doubly_linked_list.cpp
-    test_stack.cpp)
+    test_stack.cpp
+    test_vec.cpp)
 
 foreach(TEST_SOURCE ${TEST_SOURCES})
     get_filename_component(TEST_NAME ${TEST_SOURCE} NAME_WE)

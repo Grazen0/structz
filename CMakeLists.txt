@@ -11,7 +11,8 @@ add_library(structz
     src/doubly_linked_list.cpp
     src/hash_map.cpp
     src/linked_list.cpp
-    src/stack.cpp)
+    src/stack.cpp
+    src/vec.cpp)
 target_include_directories(structz PUBLIC  
     $<BUILD_INTERFACE:${CMAKE_CURRENT_SOURCE_DIR}/include>
     $<INSTALL_INTERFACE:include>
