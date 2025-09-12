@@ -8,17 +8,17 @@
 #include "linked_list.h"
 #include "vec.h"
 
-constexpr size_t MAX_COLLISIONS = 3;
+constexpr std::size_t MAX_COLLISIONS = 3;
 constexpr double MAX_FILL_FACTOR = 0.8;
 
 template<typename K, typename T>
 class HashMap {
     struct Entry {
         K key;
-        size_t hash;
+        std::size_t hash;
         T value;
 
-        Entry(K key, const size_t hash, T value)
+        Entry(K key, const std::size_t hash, T value)
             : key(std::move(key)),
               hash(hash),
               value(std::move(value)) {};
@@ -26,11 +26,11 @@ class HashMap {
 
     using Bucket = LinkedList<Entry>;
 
-    size_t size = 0;
-    size_t used_buckets = 0;
+    std::size_t size = 0;
+    std::size_t used_buckets = 0;
     Vec<Bucket> buckets;
 
-    static size_t get_hash_code(const K& key) {
+    static std::size_t get_hash_code(const K& key) {
         return std::hash<K>()(key);
     }
 
@@ -39,12 +39,12 @@ class HashMap {
     }
 
     void rehash() {
-        const size_t new_capacity = buckets.size() * 2;
+        const std::size_t new_capacity = buckets.size() * 2;
         Vec<Bucket> new_buckets(new_capacity);
 
-        for (size_t i = 0; i < buckets.size(); ++i) {
+        for (std::size_t i = 0; i < buckets.size(); ++i) {
             for (const auto& entry : buckets[i]) {
-                const size_t new_index = entry.hash % new_capacity;
+                const std::size_t new_index = entry.hash % new_capacity;
                 new_buckets[new_index].push_front(std::move(entry));
             }
         }
@@ -53,12 +53,12 @@ class HashMap {
     }
 
 public:
-    explicit HashMap(const size_t initial_capacity = 8)
+    explicit HashMap(const std::size_t initial_capacity = 8)
         : buckets(initial_capacity) {}
 
     void set(K key, T value) {
-        const size_t hash = get_hash_code(key);
-        const size_t index = hash % buckets.size();
+        const std::size_t hash = get_hash_code(key);
+        const std::size_t index = hash % buckets.size();
 
         for (auto& entry : buckets[index]) {
             if (entry.key == key) {
@@ -80,8 +80,8 @@ public:
     }
 
     T& get(const K& key) {
-        const size_t hash = get_hash_code(key);
-        const size_t index = hash % buckets.size();
+        const std::size_t hash = get_hash_code(key);
+        const std::size_t index = hash % buckets.size();
 
         for (auto& entry : buckets[index]) {
             if (entry.key == key)
@@ -92,8 +92,8 @@ public:
     }
 
     const T& get(const K& key) const {
-        const size_t hash = get_hash_code(key);
-        const size_t index = hash % buckets.size();
+        const std::size_t hash = get_hash_code(key);
+        const std::size_t index = hash % buckets.size();
 
         for (const auto& entry : buckets[index]) {
             if (entry.key == key)
@@ -104,8 +104,8 @@ public:
     }
 
     bool remove(const K& key) {
-        const size_t hash = get_hash_code(key);
-        const size_t index = hash % buckets.size();
+        const std::size_t hash = get_hash_code(key);
+        const std::size_t index = hash % buckets.size();
         auto& bucket = buckets[index];
 
         for (auto it = bucket.begin(); it != bucket.end(); ++it) {
@@ -119,8 +119,8 @@ public:
     }
 
     [[nodiscard]] bool contains(const K& key) const {
-        const size_t hash = get_hash_code(key);
-        const size_t index = hash % buckets.size();
+        const std::size_t hash = get_hash_code(key);
+        const std::size_t index = hash % buckets.size();
 
         for (auto& el : buckets[index]) {
             if (el.key == key)

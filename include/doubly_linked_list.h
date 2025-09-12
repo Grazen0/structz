@@ -206,7 +206,7 @@ class DoublyLinkedList {
 
     Node* m_head = nullptr;
     Node* m_tail = nullptr;
-    size_t m_size = 0;
+    std::size_t m_size = 0;
 
 public:
     DoublyLinkedList() = default;
@@ -312,13 +312,13 @@ public:
         return data;
     }
 
-    void remove(const size_t index) {
+    void remove(const std::size_t index) {
         if (index >= m_size)
             throw std::out_of_range("list index out of bounds");
 
         Node** cur = &m_head;
 
-        for (size_t i = 0; i < index; ++i)
+        for (std::size_t i = 0; i < index; ++i)
             cur = &(*cur)->next;
 
         Node* const next = (*cur)->next;
@@ -332,25 +332,25 @@ public:
         --m_size;
     }
 
-    [[nodiscard]] const T& operator[](const size_t index) const {
+    [[nodiscard]] const T& operator[](const std::size_t index) const {
         if (index >= m_size)
             throw std::out_of_range("list index out of bounds");
 
         Node* cur = m_head;
 
-        for (size_t i = 0; i < index; ++i)
+        for (std::size_t i = 0; i < index; ++i)
             cur = cur->next;
 
         return cur->data;
     }
 
-    [[nodiscard]] T& operator[](const size_t index) {
+    [[nodiscard]] T& operator[](const std::size_t index) {
         if (index >= m_size)
             throw std::out_of_range("list index out of bounds");
 
         Node* cur = m_head;
 
-        for (size_t i = 0; i < index; ++i)
+        for (std::size_t i = 0; i < index; ++i)
             cur = cur->next;
 
         return cur->data;
@@ -360,7 +360,7 @@ public:
         return m_size == 0;
     }
 
-    [[nodiscard]] size_t size() const {
+    [[nodiscard]] std::size_t size() const {
         return m_size;
     }
 
