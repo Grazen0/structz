@@ -33,6 +33,11 @@ public:
         swap(other);
     }
 
+    Vec(const size_t initial_size)
+        : m_capacity(initial_size),
+          m_size(initial_size),
+          m_data(new T[m_capacity]()) {}
+
     ~Vec() {
         delete[] std::exchange(m_data, nullptr);
     }
