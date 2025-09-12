@@ -24,7 +24,7 @@ public:
     Vec(const Vec<T>& other)
         : m_capacity(other.m_capacity),
           m_size(other.m_size),
-          m_data(new T[m_capacity]()) {
+          m_data(m_capacity != 0 ? new T[m_capacity]() : nullptr) {
         for (std::size_t i = 0; i < other.m_size; ++i)
             m_data[i] = other.m_data[i];
     }
@@ -36,13 +36,16 @@ public:
     Vec(const std::size_t initial_size)
         : m_capacity(initial_size),
           m_size(initial_size),
-          m_data(new T[m_capacity]()) {}
+          m_data(m_capacity != 0 ? new T[m_capacity]() : nullptr) {}
 
     ~Vec() {
         delete[] std::exchange(m_data, nullptr);
     }
 
-    static Vec<T> with_capacity(const std::size_t initial_capacity) {
+    static constexpr Vec<T> with_capacity(const std::size_t initial_capacity) {
+        if (initial_capacity == 0)
+            return Vec<T>();
+
         Vec<T> vec;
         vec.m_capacity = initial_capacity;
         vec.m_data = new T[vec.m_capacity]();
@@ -111,7 +114,8 @@ public:
 
     void push(T value) {
         if (m_size == m_capacity) {
-            const std::size_t new_capacity = 2 * m_capacity;
+            const std::size_t new_capacity =
+                m_capacity == 0 ? 4 : 2 * m_capacity;
 
             T* const new_data = new T[new_capacity]();
 
