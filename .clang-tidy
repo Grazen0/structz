@@ -1,6 +1,7 @@
 Checks: >
   boost-*,
   bugprone-*,
+  -bugprone-easily-swappable-parameters,
   clang-analyzer-*,
   concurrency-*,
   cppcoreguidelines-*,
@@ -8,6 +9,8 @@ Checks: >
   -cppcoreguidelines-owning-memory,
   -cppcoreguidelines-avoid-const-or-ref-data-members,
   -cppcoreguidelines-avoid-magic-numbers,
+  google-*,
+  -google-readability-braces-around-statements,
   misc-*,
   -misc-non-private-member-variables-in-classes,
   modernize-*,
