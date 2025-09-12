@@ -3,6 +3,7 @@
 
 #include <algorithm>
 #include <cstddef>
+#include <iterator>
 #include <stdexcept>
 #include <utility>
 
@@ -19,6 +20,11 @@ class Vec {
     }
 
 public:
+    using iterator = T*;
+    using const_iterator = const T*;
+    using reverse_iterator = std::reverse_iterator<iterator>;
+    using const_reverse_iterator = std::reverse_iterator<const_iterator>;
+
     Vec() = default;
 
     Vec(const Vec<T>& other)
@@ -138,6 +144,38 @@ public:
         const T value = std::move(m_data[m_size - 1]);
         --m_size;
         return value;
+    }
+
+    [[nodiscard]] iterator begin() {
+        return m_data;
+    }
+
+    [[nodiscard]] iterator end() {
+        return &m_data[m_size];
+    }
+
+    [[nodiscard]] const_iterator begin() const {
+        return m_data;
+    }
+
+    [[nodiscard]] const_iterator end() const {
+        return &m_data[m_size];
+    }
+
+    [[nodiscard]] reverse_iterator rbegin() {
+        return reverse_iterator(end());
+    }
+
+    [[nodiscard]] reverse_iterator rend() {
+        return reverse_iterator(begin());
+    }
+
+    [[nodiscard]] const_reverse_iterator rbegin() const {
+        return const_reverse_iterator(end());
+    }
+
+    [[nodiscard]] const_reverse_iterator rend() const {
+        return const_reverse_iterator(begin());
     }
 };
 
