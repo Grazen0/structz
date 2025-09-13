@@ -7,7 +7,7 @@
 TEST_CASE("linked lists can be constructed", "[linked_list]") {
     const LinkedList<int> list;
     REQUIRE(list.size() == 0);
-    REQUIRE(list.empty());
+    REQUIRE(list.is_empty());
 
     REQUIRE_THROWS_AS(list[0], std::out_of_range);
     REQUIRE_THROWS_AS(list[1], std::out_of_range);
@@ -43,7 +43,7 @@ TEST_CASE("can perform multiple operations on a linked list", "[linked_list]") {
     LinkedList<int> list;
 
     REQUIRE(list.size() == 0);
-    REQUIRE(list.empty());
+    REQUIRE(list.is_empty());
 
     list.push_back(1);
     list.push_back(2);
@@ -91,7 +91,7 @@ TEST_CASE("can perform multiple operations on a linked list", "[linked_list]") {
 
     list.clear();
 
-    REQUIRE(list.empty());
+    REQUIRE(list.is_empty());
 
     list.push_back(42);
 
@@ -161,7 +161,7 @@ TEST_CASE("linked lists support remove() with iterator", "[linked_list]") {
         auto it = single.begin();
         single.remove(it);
 
-        REQUIRE(single.empty());
+        REQUIRE(single.is_empty());
         REQUIRE(single.size() == 0);
     }
 

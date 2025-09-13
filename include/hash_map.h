@@ -44,7 +44,7 @@ class HashMap {
         Vec<Bucket> new_buckets(new_capacity);
 
         for (std::size_t i = 0; i < buckets.size(); ++i) {
-            while (!buckets[i].empty()) {
+            while (!buckets[i].is_empty()) {
                 const Entry entry = buckets[i].pop_front();
                 const size_t new_index = entry.hash % new_capacity;
 

@@ -248,7 +248,7 @@ public:
         return cur->data;
     }
 
-    [[nodiscard]] bool empty() const noexcept {
+    [[nodiscard]] bool is_empty() const noexcept {
         return m_size == 0;
     }
 
