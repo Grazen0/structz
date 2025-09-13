@@ -13,16 +13,16 @@ TEST_CASE("HashMap basic operations", "[HashMap]") {
     }
 
     SECTION("Insert and retrieve single element") {
-        map.set("one", 1);
+        REQUIRE(map.set("one", 1));
 
         REQUIRE(map.contains("one"));
         REQUIRE(map.get("one") == 1);
     }
 
     SECTION("Insert multiple elements") {
-        map.set("one", 1);
-        map.set("two", 2);
-        map.set("three", 3);
+        REQUIRE(map.set("one", 1));
+        REQUIRE(map.set("two", 2));
+        REQUIRE(map.set("three", 3));
 
         REQUIRE(map.contains("one"));
         REQUIRE(map.contains("two"));
@@ -32,15 +32,15 @@ TEST_CASE("HashMap basic operations", "[HashMap]") {
     }
 
     SECTION("Overwriting existing key updates value") {
-        map.set("one", 1);
+        REQUIRE(map.set("one", 1));
         REQUIRE(map.get("one") == 1);
 
-        map.set("one", 42);
+        REQUIRE(!map.set("one", 42));
         REQUIRE(map.get("one") == 42);
     }
 
     SECTION("Remove existing key") {
-        map.set("one", 1);
+        REQUIRE(map.set("one", 1));
         REQUIRE(map.contains("one"));
 
         REQUIRE(map.remove("one"));
@@ -58,8 +58,8 @@ TEST_CASE("HashMap collisions and rehashing", "[HashMap]") {
     HashMap<int, std::string> map(2);
 
     SECTION("Handles collisions by chaining") {
-        map.set(1, "one");
-        map.set(3, "three");  // May collide with 1 depending on hash
+        REQUIRE(map.set(1, "one"));
+        REQUIRE(map.set(3, "three"));  // May collide with 1 depending on hash
 
         REQUIRE(map.contains(1));
         REQUIRE(map.contains(3));
@@ -67,7 +67,7 @@ TEST_CASE("HashMap collisions and rehashing", "[HashMap]") {
 
     SECTION("Rehash expands capacity transparently") {
         for (int i = 0; i < 20; ++i) {
-            map.set(i, "val" + std::to_string(i));
+            REQUIRE(map.set(i, "val" + std::to_string(i)));
         }
 
         for (int i = 0; i < 20; ++i) {
@@ -85,8 +85,8 @@ TEST_CASE("HashMap with non-trivial types", "[HashMap]") {
 
     HashMap<int, Obj> map;
 
-    map.set(1, {1, "Alice"});
-    map.set(2, {2, "Bob"});
+    REQUIRE(map.set(1, {1, "Alice"}));
+    REQUIRE(map.set(2, {2, "Bob"}));
 
     REQUIRE(map.contains(1));
     REQUIRE(map.contains(2));

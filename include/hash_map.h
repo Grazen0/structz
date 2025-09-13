@@ -35,7 +35,8 @@ class HashMap {
     }
 
     [[nodiscard]] double fill_factor() const {
-        return (double)used_buckets / (double)buckets.size();
+        return static_cast<double>(used_buckets) /
+               static_cast<double>(buckets.size());
     }
 
     void rehash() {
@@ -61,14 +62,14 @@ public:
     explicit HashMap(const std::size_t initial_capacity = 8)
         : buckets(initial_capacity) {}
 
-    void set(K key, T value) {
+    bool set(K key, T value) {
         const std::size_t hash = get_hash_code(key);
         const std::size_t index = hash % buckets.size();
 
         for (auto& entry : buckets[index]) {
             if (entry.key == key) {
                 entry.value = std::move(value);
-                return;
+                return false;
             }
         }
 
@@ -82,6 +83,8 @@ public:
         if (buckets[index].size() > MAX_COLLISIONS ||
             fill_factor() > MAX_FILL_FACTOR)
             rehash();
+
+        return true;
     }
 
     T& get(const K& key) {
