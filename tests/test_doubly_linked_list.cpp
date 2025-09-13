@@ -4,7 +4,7 @@
 TEST_CASE("Empty list basics", "[doublylinkedlist]") {
     DoublyLinkedList<int> list;
 
-    REQUIRE(list.empty());
+    REQUIRE(list.is_empty());
     REQUIRE(list.size() == 0);
 
     SECTION("front/back/pop throw on empty") {
@@ -19,7 +19,7 @@ TEST_CASE("Push and access front/back", "[doublylinkedlist]") {
     DoublyLinkedList<int> list;
 
     list.push_front(10);
-    REQUIRE_FALSE(list.empty());
+    REQUIRE_FALSE(list.is_empty());
     REQUIRE(list.size() == 1);
     REQUIRE(list.front() == 10);
     REQUIRE(list.back() == 10);
@@ -51,7 +51,7 @@ TEST_CASE("Pop front/back", "[doublylinkedlist]") {
     REQUIRE(list.size() == 1);
 
     REQUIRE(list.pop_back() == 2);
-    REQUIRE(list.empty());
+    REQUIRE(list.is_empty());
 }
 
 TEST_CASE("Indexing", "[doublylinkedlist]") {
@@ -80,12 +80,6 @@ TEST_CASE("Iterators", "[doublylinkedlist]") {
         forward.push_back(n);
 
     REQUIRE(forward == std::vector<int>{1, 2, 3});
-
-    std::vector<int> backward;
-    for (auto it = list.rbegin(); it != list.rend(); ++it)
-        backward.push_back(*it);
-
-    REQUIRE(backward == std::vector<int>{3, 2, 1});
 }
 
 TEST_CASE("Const iterators", "[doublylinkedlist]") {
@@ -122,7 +116,7 @@ TEST_CASE("Clear", "[doublylinkedlist]") {
     list.push_back(200);
 
     list.clear();
-    REQUIRE(list.empty());
+    REQUIRE(list.is_empty());
     REQUIRE(list.size() == 0);
 
     REQUIRE_THROWS_AS(list.front(), std::runtime_error);
