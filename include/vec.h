@@ -152,35 +152,35 @@ public:
         m_size = 0;
     }
 
-    [[nodiscard]] iterator begin() {
+    [[nodiscard]] constexpr iterator begin() {
         return m_data;
     }
 
-    [[nodiscard]] iterator end() {
+    [[nodiscard]] constexpr iterator end() {
         return &m_data[m_size];
     }
 
-    [[nodiscard]] const_iterator begin() const {
+    [[nodiscard]] constexpr const_iterator begin() const {
         return m_data;
     }
 
-    [[nodiscard]] const_iterator end() const {
+    [[nodiscard]] constexpr const_iterator end() const {
         return &m_data[m_size];
     }
 
-    [[nodiscard]] reverse_iterator rbegin() {
+    [[nodiscard]] constexpr reverse_iterator rbegin() {
         return reverse_iterator(end());
     }
 
-    [[nodiscard]] reverse_iterator rend() {
+    [[nodiscard]] constexpr reverse_iterator rend() {
         return reverse_iterator(begin());
     }
 
-    [[nodiscard]] const_reverse_iterator rbegin() const {
+    [[nodiscard]] constexpr const_reverse_iterator rbegin() const {
         return const_reverse_iterator(end());
     }
 
-    [[nodiscard]] const_reverse_iterator rend() const {
+    [[nodiscard]] constexpr const_reverse_iterator rend() const {
         return const_reverse_iterator(begin());
     }
 };
