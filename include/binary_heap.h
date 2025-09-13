@@ -52,6 +52,11 @@ class BinaryHeap {
     }
 
 public:
+    using iterator = typename Vec<T>::iterator;
+    using const_iterator = typename Vec<T>::const_iterator;
+    using reverse_iterator = typename Vec<T>::reverse_iterator;
+    using const_reverse_iterator = typename Vec<T>::const_reverse_iterator;
+
     BinaryHeap() = default;
 
     [[nodiscard]] constexpr std::size_t size() const {
@@ -94,6 +99,38 @@ public:
 
     void clear() {
         data.clear();
+    }
+
+    [[nodiscard]] constexpr iterator begin() {
+        return data.begin();
+    }
+
+    [[nodiscard]] constexpr iterator end() {
+        return data.end();
+    }
+
+    [[nodiscard]] constexpr const_iterator begin() const {
+        return data.begin();
+    }
+
+    [[nodiscard]] constexpr const_iterator end() const {
+        return data.end();
+    }
+
+    [[nodiscard]] constexpr reverse_iterator rbegin() {
+        return data.rbegin();
+    }
+
+    [[nodiscard]] constexpr reverse_iterator rend() {
+        return data.rend();
+    }
+
+    [[nodiscard]] constexpr const_reverse_iterator rbegin() const {
+        return data.rbegin();
+    }
+
+    [[nodiscard]] constexpr const_reverse_iterator rend() const {
+        return data.rend();
     }
 };
 

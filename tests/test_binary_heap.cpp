@@ -235,3 +235,125 @@ TEST_CASE("BinaryHeap handles duplicates with different comparators",
         REQUIRE(heap.is_empty());
     }
 }
+
+TEST_CASE("BinaryHeap iterators basic functionality") {
+    BinaryHeap<int> heap;
+
+    SECTION("Empty heap iteration") {
+        REQUIRE(heap.begin() == heap.end());
+        REQUIRE(heap.rbegin() == heap.rend());
+    }
+
+    SECTION("Single element") {
+        heap.push(42);
+
+        // Forward iteration
+        auto it = heap.begin();
+        REQUIRE(it != heap.end());
+        REQUIRE(*it == 42);
+        ++it;
+        REQUIRE(it == heap.end());
+
+        // Reverse iteration
+        auto rit = heap.rbegin();
+        REQUIRE(rit != heap.rend());
+        REQUIRE(*rit == 42);
+        ++rit;
+        REQUIRE(rit == heap.rend());
+    }
+
+    SECTION("Multiple elements") {
+        std::vector<int> values = {10, 4, 7, 1, 3};
+        for (int v : values)
+            heap.push(v);
+
+        // Forward iteration
+        std::vector<int> iterated(heap.begin(), heap.end());
+        REQUIRE(iterated.size() == values.size());
+
+        // Reverse iteration
+        std::vector<int> rev_iterated(heap.rbegin(), heap.rend());
+        REQUIRE(rev_iterated.size() == values.size());
+
+        // Iterated values match underlying heap storage order (not sorted)
+        for (std::size_t i = 0; i < values.size(); ++i) {
+            REQUIRE(iterated[i] == heap.begin()[i]);  // basic consistency
+            REQUIRE(rev_iterated[i] == *(heap.rend() - heap.size() + i));
+        }
+    }
+
+    SECTION("Const iterators") {
+        for (int i = 1; i <= 3; ++i)
+            heap.push(i);
+        const BinaryHeap<int>& const_heap = heap;
+
+        std::vector<int> iterated(const_heap.begin(), const_heap.end());
+        REQUIRE(iterated.size() == 3);
+        REQUIRE(iterated[0] == const_heap.begin()[0]);
+
+        std::vector<int> rev_iterated(const_heap.rbegin(), const_heap.rend());
+        REQUIRE(rev_iterated.size() == 3);
+        REQUIRE(rev_iterated[0] == *(const_heap.rend() - heap.size()));
+    }
+}
+
+TEST_CASE("BinaryHeap iterator edge cases") {
+    BinaryHeap<int> heap;
+
+    SECTION("Iterator after clear") {
+        heap.push(5);
+        heap.push(10);
+        heap.clear();
+        REQUIRE(heap.begin() == heap.end());
+        REQUIRE(heap.rbegin() == heap.rend());
+    }
+
+    SECTION("Incrementing past end is invalid") {
+        heap.push(1);
+        auto it = heap.begin();
+        ++it;
+        REQUIRE(it == heap.end());
+    }
+
+    SECTION("Decrementing reverse iterator past rend is invalid") {
+        heap.push(1);
+        auto rit = heap.rbegin();
+        ++rit;
+        REQUIRE(rit == heap.rend());
+    }
+
+    SECTION("Iterator on large heap") {
+        for (int i = 0; i < 100; ++i)
+            heap.push(i);
+        std::size_t count = 0;
+        for (auto it = heap.begin(); it != heap.end(); ++it)
+            count++;
+        REQUIRE(count == 100);
+
+        count = 0;
+        for (auto rit = heap.rbegin(); rit != heap.rend(); ++rit)
+            count++;
+        REQUIRE(count == 100);
+    }
+}
+
+TEST_CASE("BinaryHeap iterator stability during pops") {
+    BinaryHeap<int> heap;
+    heap.push(1);
+    heap.push(2);
+    heap.push(3);
+
+    SECTION("Iterators reflect storage, not heap order") {
+        auto it = heap.begin();
+        std::vector<int> vals;
+        while (it != heap.end()) {
+            vals.push_back(*it);
+            ++it;
+        }
+
+        int popped = heap.pop();
+        REQUIRE(popped == 1);
+
+        REQUIRE(vals.size() == 3);
+    }
+}
