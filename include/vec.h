@@ -39,7 +39,7 @@ public:
         swap(other);
     }
 
-    Vec(const std::size_t initial_size)
+    explicit Vec(const std::size_t initial_size)
         : m_capacity(initial_size),
           m_size(initial_size),
           m_data(m_capacity != 0 ? new T[m_capacity]() : nullptr) {}
