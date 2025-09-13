@@ -4,7 +4,7 @@
 
 TEST_CASE("can perform multiple operations on stack", "[stack]") {
     Stack<int> stack;
-    REQUIRE(stack.empty());
+    REQUIRE(stack.is_empty());
 
     stack.push(8);
     stack.push(5);
@@ -13,7 +13,7 @@ TEST_CASE("can perform multiple operations on stack", "[stack]") {
 
     std::vector<int> result;
 
-    while (!stack.empty()) {
+    while (!stack.is_empty()) {
         int val = stack.pop();
         result.push_back(val);
     }
