@@ -146,6 +146,12 @@ public:
         return value;
     }
 
+    void clear() {
+        m_data = std::exchange(m_data, nullptr);
+        m_capacity = 0;
+        m_size = 0;
+    }
+
     [[nodiscard]] iterator begin() {
         return m_data;
     }
