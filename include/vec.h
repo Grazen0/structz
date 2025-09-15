@@ -1,7 +1,6 @@
 #ifndef STRUCTZ_VECTOR_H
 #define STRUCTZ_VECTOR_H
 
-#include <algorithm>
 #include <cstddef>
 #include <iterator>
 #include <stdexcept>

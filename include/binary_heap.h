@@ -1,7 +1,6 @@
 #ifndef STUCTZ_BINARY_HEAP_H
 #define STUCTZ_BINARY_HEAP_H
 
-#include <algorithm>
 #include <cstddef>
 #include <functional>
 #include <stdexcept>

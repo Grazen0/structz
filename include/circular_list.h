@@ -1,8 +1,8 @@
 #ifndef STRUCTZ_CIRCULAR_LIST_H
 #define STRUCTZ_CIRCULAR_LIST_H
 
-#include <algorithm>
 #include <cstddef>
+#include <iterator>
 #include <stdexcept>
 #include <utility>
 
