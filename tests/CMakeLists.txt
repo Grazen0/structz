@@ -7,6 +7,7 @@ set(TEST_SOURCES
     test_hash_map.cpp
     test_hash_set.cpp
     test_doubly_linked_list.cpp
+    test_queue.cpp
     test_stack.cpp
     test_vec.cpp)
 

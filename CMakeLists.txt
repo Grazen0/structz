@@ -14,6 +14,7 @@ add_library(structz
     src/hash_map.cpp
     src/hash_set.cpp
     src/linked_list.cpp
+    src/queue.cpp
     src/stack.cpp
     src/vec.cpp)
 target_include_directories(structz PUBLIC  
