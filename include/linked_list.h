@@ -71,7 +71,7 @@ class LinkedList {
         using pointer = const T*;
         using reference = const T&;
 
-        const_iterator(const Node* const head)
+        explicit const_iterator(const Node* const head)
             : cur(head) {}
 
         const_iterator& operator++() {
