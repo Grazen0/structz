@@ -12,6 +12,7 @@ add_library(structz
     src/circular_list.cpp
     src/doubly_linked_list.cpp
     src/hash_map.cpp
+    src/hash_set.cpp
     src/linked_list.cpp
     src/stack.cpp
     src/vec.cpp)

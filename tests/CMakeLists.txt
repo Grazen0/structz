@@ -5,6 +5,7 @@ set(TEST_SOURCES
     test_circular_list.cpp
     test_linked_list.cpp
     test_hash_map.cpp
+    test_hash_set.cpp
     test_doubly_linked_list.cpp
     test_stack.cpp
     test_vec.cpp)
