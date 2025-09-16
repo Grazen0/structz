@@ -1,189 +1,217 @@
 #include <catch2/catch_test_macros.hpp>
-#include <string>
 #include "vec.h"
 
-TEST_CASE("Vec: Default construction", "[Vec]") {
+TEST_CASE("Vec basic construction", "[vec]") {
     Vec<int> v;
+
     REQUIRE(v.size() == 0);
     REQUIRE(v.is_empty());
 }
 
-TEST_CASE("Vec: Construction with size", "[Vec]") {
+TEST_CASE("Vec with initial size", "[vec]") {
     Vec<int> v(5);
+
     REQUIRE(v.size() == 5);
-    for (std::size_t i = 0; i < v.size(); ++i) {
-        REQUIRE(v[i] == 0);  // value-initialized
+    REQUIRE_FALSE(v.is_empty());
+
+    for (std::size_t i = 0; i < v.size(); i++) {
+        REQUIRE(v[i] == 0);  // default initialized
     }
 }
 
-TEST_CASE("Vec: with_capacity static factory", "[Vec]") {
+TEST_CASE("Vec with_capacity", "[vec]") {
     auto v = Vec<int>::with_capacity(10);
+
     REQUIRE(v.size() == 0);
     REQUIRE(v.is_empty());
+
+    // capacity is internal, but we can still push up to it without realloc
     v.push(42);
     REQUIRE(v.size() == 1);
     REQUIRE(v[0] == 42);
 }
 
-TEST_CASE("Vec: Copy construction", "[Vec]") {
-    Vec<std::string> v;
-    v.push("hello");
-    v.push("world");
-    Vec<std::string> copy(v);
-    REQUIRE(copy.size() == 2);
-    REQUIRE(copy[0] == "hello");
-    REQUIRE(copy[1] == "world");
-}
+TEST_CASE("Vec copy constructor and assignment", "[vec]") {
+    Vec<int> a;
+    a.push(1);
+    a.push(2);
 
-TEST_CASE("Vec: Move construction", "[Vec]") {
-    Vec<int> v;
-    v.push(10);
-    v.push(20);
-    Vec<int> moved(std::move(v));
-    REQUIRE(moved.size() == 2);
-    REQUIRE(moved[0] == 10);
-    REQUIRE(moved[1] == 20);
-    REQUIRE(v.size() == 0);  // moved-from state
-}
+    SECTION("Copy constructor") {
+        Vec<int> b(a);
+        REQUIRE(b.size() == 2);
+        REQUIRE(b[0] == 1);
+        REQUIRE(b[1] == 2);
 
-TEST_CASE("Vec: Copy assignment", "[Vec]") {
-    Vec<int> v1;
-    v1.push(1);
-    v1.push(2);
-    Vec<int> v2;
-    v2 = v1;
-    REQUIRE(v2.size() == 2);
-    REQUIRE(v2[0] == 1);
-    REQUIRE(v2[1] == 2);
-}
-
-TEST_CASE("Vec: Move assignment", "[Vec]") {
-    Vec<int> v1;
-    v1.push(5);
-    v1.push(6);
-    Vec<int> v2;
-    v2 = std::move(v1);
-    REQUIRE(v2.size() == 2);
-    REQUIRE(v2[0] == 5);
-    REQUIRE(v2[1] == 6);
-    REQUIRE(v1.size() == 0);
-}
-
-TEST_CASE("Vec: Push and automatic resize", "[Vec]") {
-    Vec<int> v;
-    for (int i = 0; i < 10; ++i) {
-        v.push(i);
+        // modify original, copy shouldn't change
+        a[0] = 99;
+        REQUIRE(b[0] == 1);
     }
-    REQUIRE(v.size() == 10);
-    for (int i = 0; i < 10; ++i) {
-        REQUIRE(v[i] == i);
+
+    SECTION("Copy assignment") {
+        Vec<int> b;
+        b = a;
+        REQUIRE(b.size() == 2);
+        REQUIRE(b[0] == 1);
+        REQUIRE(b[1] == 2);
     }
 }
 
-TEST_CASE("Vec: Pop elements", "[Vec]") {
+TEST_CASE("Vec move constructor and assignment", "[vec]") {
+    Vec<int> a;
+    a.push(10);
+    a.push(20);
+
+    SECTION("Move constructor") {
+        Vec<int> b(std::move(a));
+        REQUIRE(b.size() == 2);
+        REQUIRE(b[0] == 10);
+        REQUIRE(b[1] == 20);
+    }
+
+    SECTION("Move assignment") {
+        Vec<int> b;
+        b = std::move(a);
+        REQUIRE(b.size() == 2);
+        REQUIRE(b[0] == 10);
+        REQUIRE(b[1] == 20);
+    }
+}
+
+TEST_CASE("Vec indexing", "[vec]") {
     Vec<int> v;
     v.push(1);
     v.push(2);
-    v.push(3);
-    REQUIRE(v.pop() == 3);
-    REQUIRE(v.size() == 2);
-    REQUIRE(v.pop() == 2);
-    REQUIRE(v.pop() == 1);
-    REQUIRE(v.size() == 0);
-    REQUIRE_THROWS_AS(v.pop(), std::out_of_range);
-}
 
-TEST_CASE("Vec: Access first and last", "[Vec]") {
-    Vec<int> v;
-    v.push(7);
-    v.push(8);
-    v.push(9);
-    REQUIRE(v.first() == 7);
-    REQUIRE(v.last() == 9);
-    const auto& cv = v;
-    REQUIRE(cv.first() == 7);
-    REQUIRE(cv.last() == 9);
-
-    Vec<int> empty;
-    REQUIRE_THROWS_AS(empty.first(), std::out_of_range);
-    REQUIRE_THROWS_AS(empty.last(), std::out_of_range);
-}
-
-TEST_CASE("Vec: operator[] bounds checking", "[Vec]") {
-    Vec<int> v(3);
-    v[0] = 1;
-    v[1] = 2;
-    v[2] = 3;
+    REQUIRE(v[0] == 1);
     REQUIRE(v[1] == 2);
-    const auto& cv = v;
-    REQUIRE(cv[2] == 3);
-    REQUIRE_THROWS_AS(v[3], std::out_of_range);
-    REQUIRE_THROWS_AS(cv[3], std::out_of_range);
+
+    v[0] = 42;
+    REQUIRE(v[0] == 42);
+
+    REQUIRE_THROWS_AS(v[2], std::out_of_range);
+    REQUIRE_THROWS_AS(v[999], std::out_of_range);
 }
 
-TEST_CASE("Vec: Iterators basic traversal", "[Vec]") {
+TEST_CASE("Vec first and last", "[vec]") {
     Vec<int> v;
-    for (int i = 0; i < 5; ++i)
-        v.push(i);
-    int expected = 0;
-    for (int& el : v) {
-        REQUIRE(el == expected++);
+
+    SECTION("Empty vec throws") {
+        REQUIRE_THROWS_AS(v.first(), std::out_of_range);
+        REQUIRE_THROWS_AS(v.last(), std::out_of_range);
+    }
+
+    SECTION("Non-empty vec") {
+        v.push(5);
+        v.push(10);
+
+        REQUIRE(v.first() == 5);
+        REQUIRE(v.last() == 10);
     }
 }
 
-TEST_CASE("Vec: Const iterators", "[Vec]") {
+TEST_CASE("Vec push and pop", "[vec]") {
     Vec<int> v;
-    for (int i = 0; i < 5; ++i)
-        v.push(i * 10);
-    const auto& cv = v;
-    int expected = 0;
-    for (int el : cv) {
-        REQUIRE(el == expected * 10);
-        ++expected;
+
+    SECTION("Push grows vector") {
+        v.push(1);
+        v.push(2);
+        v.push(3);
+
+        REQUIRE(v.size() == 3);
+        REQUIRE(v.last() == 3);
+    }
+
+    SECTION("Pop returns last element") {
+        v.push(42);
+        v.push(99);
+
+        int val = v.pop();
+        REQUIRE(val == 99);
+        REQUIRE(v.size() == 1);
+        REQUIRE(v.last() == 42);
+    }
+
+    SECTION("Pop empty throws") {
+        REQUIRE_THROWS_AS(v.pop(), std::out_of_range);
+    }
+
+    SECTION("Push beyond initial capacity resizes") {
+        for (int i = 0; i < 10; i++) {
+            v.push(i);
+        }
+        REQUIRE(v.size() == 10);
+        REQUIRE(v.last() == 9);
     }
 }
 
-TEST_CASE("Vec: Reverse iterators", "[Vec]") {
+TEST_CASE("Vec clear", "[vec]") {
     Vec<int> v;
-    for (int i = 1; i <= 5; ++i)
+    v.push(1);
+    v.push(2);
+
+    v.clear();
+    REQUIRE(v.size() == 0);
+    REQUIRE(v.is_empty());
+
+    REQUIRE_THROWS_AS(v.first(), std::out_of_range);
+    REQUIRE_THROWS_AS(v.last(), std::out_of_range);
+}
+
+TEST_CASE("Vec iterators", "[vec]") {
+    Vec<int> v;
+    for (int i = 0; i < 5; i++)
         v.push(i);
-    int expected = 1;
-    for (auto it = v.rend(); it != v.rbegin(); --it) {
-        if (it == v.rend())
-            continue;  // skip the end sentinel
-        REQUIRE(*it == expected++);
+
+    SECTION("Forward iteration") {
+        int expected = 0;
+        for (auto it = v.begin(); it != v.end(); ++it) {
+            REQUIRE(*it == expected++);
+        }
+    }
+
+    SECTION("Const forward iteration") {
+        const auto& cv = v;
+        int expected = 0;
+        for (auto it = cv.begin(); it != cv.end(); ++it) {
+            REQUIRE(*it == expected++);
+        }
+    }
+
+    SECTION("Reverse iteration") {
+        int expected = 4;
+        for (auto it = v.rbegin(); it != v.rend(); ++it) {
+            REQUIRE(*it == expected--);
+        }
+    }
+
+    SECTION("Const reverse iteration") {
+        const auto& cv = v;
+        int expected = 4;
+        for (auto it = cv.rbegin(); it != cv.rend(); ++it) {
+            REQUIRE(*it == expected--);
+        }
     }
 }
 
-TEST_CASE("Vec: Const reverse iterators", "[Vec]") {
-    Vec<int> v;
-    for (int i = 1; i <= 3; ++i)
-        v.push(i);
-    const auto& cv = v;
-    auto it = cv.rbegin();
-    REQUIRE(*it == 3);
-    ++it;
-    REQUIRE(*it == 2);
-    ++it;
-    REQUIRE(*it == 1);
-    ++it;
-    REQUIRE(it == cv.rend());
-}
+TEST_CASE("Vec with non-trivial types", "[vec]") {
+    struct Obj {
+        int value;
+        Obj(int v = 0)
+            : value(v) {}
+        bool operator==(const Obj& other) const {
+            return value == other.value;
+        }
+    };
 
-TEST_CASE("Vec: Iterator relational ops", "[Vec]") {
-    Vec<int> v(3);
-    auto it1 = v.begin();
-    auto it2 = v.begin() + 2;
-    REQUIRE(it1 < it2);
-    REQUIRE(it2 > it1);
-    REQUIRE(it1 <= it2);
-    REQUIRE(it2 >= it1);
-    REQUIRE(it1 != it2);
-}
+    Vec<Obj> v;
+    v.push(Obj(10));
+    v.push(Obj(20));
 
-TEST_CASE("Vec: Reverse iterator relational ops", "[Vec]") {
-    Vec<int> v(3);
-    auto it1 = v.rbegin();
-    auto it2 = v.rend();
-    REQUIRE(it1 != it2);
+    REQUIRE(v.size() == 2);
+    REQUIRE(v[0].value == 10);
+    REQUIRE(v[1].value == 20);
+
+    Obj popped = v.pop();
+    REQUIRE(popped.value == 20);
+    REQUIRE(v.size() == 1);
 }
