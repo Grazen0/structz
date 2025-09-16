@@ -8,6 +8,7 @@ set(CMAKE_CXX_STANDARD_EXTENSIONS OFF)
 set(CMAKE_EXPORT_COMPILE_COMMANDS ON)
 
 add_library(structz
+    src/avl_tree.cpp
     src/binary_heap.cpp
     src/circular_list.cpp
     src/doubly_linked_list.cpp

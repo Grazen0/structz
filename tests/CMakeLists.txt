@@ -1,6 +1,7 @@
 find_package(Catch2 3 REQUIRED)
 
 set(TEST_SOURCES
+    test_avl_tree.cpp
     test_binary_heap.cpp
     test_circular_list.cpp
     test_linked_list.cpp
