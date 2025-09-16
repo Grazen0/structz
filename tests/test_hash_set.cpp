@@ -2,114 +2,140 @@
 #include <string>
 #include "hash_set.h"
 
-TEST_CASE("HashSet basic insert and contains") {
+TEST_CASE("HashSet basic properties", "[hashset]") {
     HashSet<int> set;
 
-    SECTION("Insert and check presence") {
-        REQUIRE(set.insert(10));
-        REQUIRE(set.contains(10));
-        REQUIRE_FALSE(set.contains(20));
-    }
-
-    SECTION("Duplicate insert does not add") {
-        REQUIRE(set.insert(10));
-        REQUIRE_FALSE(set.insert(10));
-        REQUIRE(set.contains(10));
-    }
+    REQUIRE(set.is_empty());
+    REQUIRE(set.size() == 0);
+    REQUIRE_FALSE(set.contains(42));
 }
 
-TEST_CASE("HashSet remove") {
+TEST_CASE("HashSet insert and contains", "[hashset]") {
     HashSet<int> set;
-    set.insert(1);
-    set.insert(2);
 
-    SECTION("Remove existing element") {
-        REQUIRE(set.contains(1));
-        REQUIRE(set.remove(1));
-        REQUIRE_FALSE(set.contains(1));
-    }
+    REQUIRE(set.insert(1));
+    REQUIRE(set.insert(2));
+    REQUIRE(set.insert(3));
 
-    SECTION("Remove twice fails") {
-        set.remove(1);
-        REQUIRE_FALSE(set.remove(1));
-    }
-
-    SECTION("Other elements remain") {
-        set.remove(1);
-        REQUIRE(set.contains(2));
-    }
+    REQUIRE(set.size() == 3);
+    REQUIRE(set.contains(1));
+    REQUIRE(set.contains(2));
+    REQUIRE(set.contains(3));
+    REQUIRE_FALSE(set.contains(99));
 }
 
-TEST_CASE("HashSet empty set behavior") {
+TEST_CASE("HashSet duplicate insertions", "[hashset]") {
+    HashSet<int> set;
+
+    REQUIRE(set.insert(5));
+    REQUIRE_FALSE(set.insert(5));  // inserting same element again
+
+    REQUIRE(set.size() == 1);
+    REQUIRE(set.contains(5));
+}
+
+TEST_CASE("HashSet remove elements", "[hashset]") {
+    HashSet<int> set;
+
+    set.insert(10);
+    set.insert(20);
+
+    REQUIRE(set.remove(10));
+    REQUIRE_FALSE(set.contains(10));
+    REQUIRE(set.size() == 1);
+
+    REQUIRE_FALSE(set.remove(42));  // removing non-existent key
+    REQUIRE(set.size() == 1);
+
+    REQUIRE(set.remove(20));
+    REQUIRE(set.is_empty());
+}
+
+TEST_CASE("HashSet clear", "[hashset]") {
     HashSet<std::string> set;
 
-    SECTION("Contains returns false for empty") {
-        REQUIRE_FALSE(set.contains("hello"));
+    set.insert("apple");
+    set.insert("banana");
+    REQUIRE(set.size() == 2);
+
+    set.clear();
+    REQUIRE(set.is_empty());
+    REQUIRE(set.size() == 0);
+
+    REQUIRE_FALSE(set.contains("apple"));
+    REQUIRE_FALSE(set.contains("banana"));
+}
+
+TEST_CASE("HashSet many insertions (rehash stress)", "[hashset][rehash]") {
+    HashSet<int> set(2);  // small initial capacity
+
+    const int N = 200;
+    for (int i = 0; i < N; i++) {
+        REQUIRE(set.insert(i));
     }
 
-    SECTION("Remove returns false for empty") {
-        REQUIRE_FALSE(set.remove("hello"));
+    REQUIRE(set.size() == N);
+
+    for (int i = 0; i < N; i++) {
+        REQUIRE(set.contains(i));
     }
 }
 
-struct BadHash {
-    int value;
-    bool operator==(const BadHash& other) const {
-        return value == other.value;
+TEST_CASE("HashSet with non-primitive keys", "[hashset]") {
+    HashSet<std::string> set;
+
+    set.insert("hello");
+    set.insert("world");
+
+    REQUIRE(set.contains("hello"));
+    REQUIRE(set.contains("world"));
+    REQUIRE_FALSE(set.contains("test"));
+
+    set.remove("hello");
+    REQUIRE_FALSE(set.contains("hello"));
+}
+
+// Force collisions with custom key type
+struct BadKey {
+    int x;
+    bool operator==(const BadKey& other) const {
+        return x == other.x;
     }
 };
 
-// Custom hash specialization that forces collisions
 namespace std {
     template<>
-    struct hash<BadHash> {
-        size_t operator()(const BadHash& /* bad_hash */) const {
+    struct hash<BadKey> {
+        std::size_t operator()(const BadKey& /* bad_hash */) const {
             return 42;
         }
     };
 }
 
-TEST_CASE("HashSet collision handling") {
-    HashSet<BadHash> set(2);
+TEST_CASE("HashSet edge cases", "[hashset]") {
+    SECTION("Removing from empty set") {
+        HashSet<int> set;
+        REQUIRE_FALSE(set.remove(10));
+    }
 
-    SECTION("Insert multiple colliding elements") {
-        for (int i = 0; i < 5; i++) {
+    SECTION("Inserting nullptr values when T is pointer") {
+        HashSet<const char*> set;
+        REQUIRE(set.insert(nullptr));
+        REQUIRE(set.contains(nullptr));
+        REQUIRE_FALSE(set.insert(nullptr));  // duplicate nullptr
+    }
+
+    SECTION("Large number of collisions with custom key") {
+        HashMap<BadKey, std::monostate> custom_map(2);
+        HashSet<BadKey> set;
+
+        // Insert several colliding keys
+        for (int i = 0; i < 10; i++) {
             REQUIRE(set.insert({i}));
         }
-        for (int i = 0; i < 5; i++) {
+
+        for (int i = 0; i < 10; i++) {
             REQUIRE(set.contains({i}));
         }
     }
-
-    SECTION("Duplicate colliding insert fails") {
-        REQUIRE(set.insert({3}));
-        REQUIRE_FALSE(set.insert({3}));
-    }
-}
-
-TEST_CASE("HashSet rehashing") {
-    SECTION("Rehash triggered by fill factor") {
-        HashSet<int> set(2);  // small capacity
-        for (int i = 0; i < 20; i++) {
-            REQUIRE(set.insert(i));
-        }
-        for (int i = 0; i < 20; i++) {
-            REQUIRE(set.contains(i));
-        }
-    }
-}
-
-TEST_CASE("HashSet with std::string keys") {
-    HashSet<std::string> set;
-
-    REQUIRE(set.insert("alpha"));
-    REQUIRE(set.insert("beta"));
-    REQUIRE(set.insert("gamma"));
-
-    REQUIRE(set.contains("alpha"));
-    REQUIRE(set.contains("beta"));
-    REQUIRE(set.contains("gamma"));
-
-    REQUIRE(set.remove("beta"));
-    REQUIRE_FALSE(set.contains("beta"));
 }
