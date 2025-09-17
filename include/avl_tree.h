@@ -6,7 +6,6 @@
 #include <cstdlib>
 #include <functional>
 #include <stdexcept>
-#include <tuple>
 #include <utility>
 #include "stack.h"
 #include "vec.h"
@@ -41,7 +40,7 @@ class AvlTree {
         return node->height;
     }
 
-    static void update_height(Node* const node) {
+    constexpr static void update_height(Node* const node) {
         node->height = 1 + std::max(height(node->left), height(node->right));
     }
 
@@ -151,7 +150,7 @@ public:
         return m_size == 0;
     }
 
-    [[nodiscard]] constexpr std::size_t height() const {
+    [[nodiscard]] constexpr std::ptrdiff_t height() const {
         return height(m_root);
     }
 
