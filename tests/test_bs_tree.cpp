@@ -237,3 +237,159 @@ TEST_CASE("Bulk insert/remove randomized stress test") {
     for (int i = 0; i < N; i += 2)
         REQUIRE_FALSE(t.contains(i));
 }
+
+// Helper to collect all elements via iterator into a vector
+template<typename Iter>
+std::vector<typename Iter::value_type> collect(Iter first, Iter last) {
+    std::vector<typename Iter::value_type> result;
+    for (; first != last; ++first) {
+        result.push_back(*first);
+    }
+    return result;
+}
+
+TEST_CASE("Iterators on empty tree") {
+    BSTree<int, std::string> tree;
+
+    auto it = tree.begin();
+    auto end = tree.end();
+
+    SECTION("begin == end for empty tree") {
+        REQUIRE(it == end);
+        REQUIRE(it == tree.end());
+    }
+
+    SECTION("const_iterator works on empty tree") {
+        const BSTree<int, std::string>& ctree = tree;
+        REQUIRE(ctree.begin() == ctree.end());
+    }
+}
+
+TEST_CASE("Single element tree iteration") {
+    BSTree<int, std::string> tree;
+    tree.insert(10, "ten");
+
+    auto it = tree.begin();
+    auto end = tree.end();
+
+    SECTION("begin != end") {
+        REQUIRE(it != end);
+    }
+
+    SECTION("Dereferencing works") {
+        auto [k, v] = *it;
+        REQUIRE(k == 10);
+        REQUIRE(v == "ten");
+    }
+
+    SECTION("Incrementing reaches end") {
+        ++it;
+        REQUIRE(it == end);
+    }
+}
+
+TEST_CASE("Multiple elements in-order traversal") {
+    BSTree<int, std::string> tree;
+    tree.insert(5, "five");
+    tree.insert(3, "three");
+    tree.insert(7, "seven");
+    tree.insert(6, "six");
+    tree.insert(8, "eight");
+
+    auto values = collect(tree.begin(), tree.end());
+
+    SECTION("Traversal yields sorted order by key") {
+        std::vector<int> keys;
+        for (auto& [k, v] : values)
+            keys.push_back(k);
+
+        REQUIRE(keys == std::vector<int>{3, 5, 6, 7, 8});
+    }
+
+    SECTION("Values correspond to keys") {
+        std::vector<std::string> vals;
+        for (auto& [k, v] : values)
+            vals.push_back(v);
+
+        REQUIRE(vals == std::vector<std::string>{"three", "five", "six",
+                                                 "seven", "eight"});
+    }
+}
+
+TEST_CASE("Iterator postfix increment works") {
+    BSTree<int, int> tree;
+    for (int i : {2, 1, 3})
+        tree.insert(i, i * 10);
+
+    auto it = tree.begin();
+    auto it2 = it++;  // postfix
+
+    SECTION("Postfix returns old value") {
+        REQUIRE((*it2).first == 1);
+    }
+
+    SECTION("Iterator advances") {
+        REQUIRE((*it).first == 2);
+    }
+}
+
+TEST_CASE("Const iterator traversal works") {
+    BSTree<int, int> tree;
+    for (int i : {4, 2, 6, 1, 3, 5, 7})
+        tree.insert(i, i);
+
+    const BSTree<int, int>& ctree = tree;
+    auto values = collect(ctree.begin(), ctree.end());
+
+    SECTION("Const iteration yields sorted order") {
+        std::vector<int> keys;
+        for (auto& [k, v] : values)
+            keys.push_back(k);
+        REQUIRE(keys == std::vector<int>{1, 2, 3, 4, 5, 6, 7});
+    }
+}
+
+TEST_CASE("Iterator equality/inequality checks") {
+    BSTree<int, int> tree;
+    tree.insert(1, 10);
+    tree.insert(2, 20);
+
+    auto it1 = tree.begin();
+    auto it2 = tree.begin();
+    auto end = tree.end();
+
+    SECTION("Two begin iterators compare equal") {
+        REQUIRE(it1 == it2);
+    }
+
+    SECTION("Iterator and end compare not equal") {
+        REQUIRE(it1 != end);
+    }
+
+    SECTION("After increment, not equal to original begin") {
+        ++it1;
+        REQUIRE(it1 != it2);
+    }
+
+    SECTION("Increment until end equals end") {
+        ++it1;  // go to 2
+        ++it1;  // past end
+        REQUIRE(it1 == end);
+    }
+}
+
+TEST_CASE("Iterator on skewed tree (degenerate case)") {
+    BSTree<int, int> tree;
+    // Insert sorted keys to make a degenerate right-skewed tree
+    for (int i = 1; i <= 5; ++i)
+        tree.insert(i, i * 10);
+
+    auto values = collect(tree.begin(), tree.end());
+
+    SECTION("Traversal still works in sorted order") {
+        std::vector<int> keys;
+        for (auto& [k, v] : values)
+            keys.push_back(k);
+        REQUIRE(keys == std::vector<int>{1, 2, 3, 4, 5});
+    }
+}

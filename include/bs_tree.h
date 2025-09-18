@@ -37,6 +37,120 @@ class BSTree {
     }
 
 public:
+    class iterator {
+        Stack<Node*> stack;
+
+    public:
+        using iterator_category = std::forward_iterator_tag;
+        using value_type = std::pair<const K, T>;
+        using reference = value_type&;
+        using pointer = value_type*;
+
+        explicit iterator(Node* const root) {
+            Node* cur = root;
+
+            while (cur != nullptr) {
+                stack.push(cur);
+                cur = cur->left;
+            }
+        }
+
+        iterator& operator++() {
+            Node* cur = stack.top();
+            stack.pop();
+            cur = cur->right;
+
+            while (cur != nullptr) {
+                stack.push(cur);
+                cur = cur->left;
+            }
+
+            return *this;
+        }
+
+        iterator operator++(int) {
+            iterator retval = *this;
+            ++(*this);
+            return retval;
+        }
+
+        bool operator==(const iterator& other) const {
+            if (stack.is_empty() && other.stack.is_empty())
+                return true;
+
+            if (other.stack.is_empty())
+                return false;
+
+            return stack.top() == other.stack.top();
+        }
+
+        bool operator!=(const iterator& other) const {
+            return !(*this == other);
+        }
+
+        value_type operator*() {
+            Node* const node = stack.top();
+            return {node->key, node->value};
+        }
+    };
+
+    class const_iterator {
+        Stack<const Node*> stack;
+
+    public:
+        using iterator_category = std::forward_iterator_tag;
+        using value_type = std::pair<const K, const T>;
+        using reference = value_type&;
+        using pointer = value_type*;
+
+        explicit const_iterator(const Node* const root) {
+            const Node* cur = root;
+
+            while (cur != nullptr) {
+                stack.push(cur);
+                cur = cur->left;
+            }
+        }
+
+        const_iterator& operator++() {
+            const Node* cur = stack.top();
+            stack.pop();
+            cur = cur->right;
+
+            while (cur != nullptr) {
+                stack.push(cur);
+                cur = cur->left;
+            }
+
+            return *this;
+        }
+
+        const_iterator operator++(int) {
+            iterator retval = *this;
+            ++(*this);
+            return retval;
+        }
+
+        bool operator==(const const_iterator& other) const {
+            if (stack.is_empty() && other.stack.is_empty())
+                return true;
+
+            if (other.stack.is_empty())
+                return false;
+
+            return stack.top() == other.stack.top();
+        }
+
+        bool operator!=(const const_iterator& other) const {
+            return !(*this == other);
+        }
+
+        value_type operator*() {
+            const Node* const node = stack.top();
+            return {node->key, node->value};
+        }
+    };
+
     BSTree() = default;
 
     BSTree(const BSTree& other) {
@@ -206,6 +320,22 @@ public:
 
     void clear() {
         BSTree().swap(*this);
+    }
+
+    [[nodiscard]] iterator begin() {
+        return iterator(m_root);
+    }
+
+    [[nodiscard]] iterator end() {
+        return iterator(nullptr);
+    }
+
+    [[nodiscard]] const_iterator begin() const {
+        return const_iterator(m_root);
+    }
+
+    [[nodiscard]] const_iterator end() const {
+        return const_iterator(nullptr);
     }
 };
 
