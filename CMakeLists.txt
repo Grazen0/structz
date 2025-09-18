@@ -10,6 +10,7 @@ set(CMAKE_EXPORT_COMPILE_COMMANDS ON)
 add_library(structz
     src/avl_tree.cpp
     src/binary_heap.cpp
+    src/bs_tree.cpp
     src/circular_list.cpp
     src/doubly_linked_list.cpp
     src/hash_map.cpp
