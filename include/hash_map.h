@@ -143,7 +143,7 @@ public:
         auto& bucket = m_buckets[index];
 
         for (auto it = bucket.begin(); it != bucket.end(); ++it) {
-            if ((*it).key == key) {
+            if (it->key == key) {
                 m_buckets[index].remove(it);
                 --m_size;
                 return true;

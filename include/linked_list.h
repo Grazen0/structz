@@ -28,8 +28,8 @@ class LinkedList {
     public:
         using iterator_category = std::forward_iterator_tag;
         using value_type = T;
-        using pointer = T*;
-        using reference = T&;
+        using pointer = value_type*;
+        using reference = value_type&;
 
         explicit iterator(Node** const head)
             : cur(head) {}
@@ -57,8 +57,12 @@ class LinkedList {
             return !(*this == other);
         }
 
-        value_type& operator*() {
+        reference operator*() {
             return (*cur)->data;
+        }
+
+        pointer operator->() {
+            return &(*cur)->data;
         }
     };
 
@@ -68,8 +72,8 @@ class LinkedList {
     public:
         using iterator_category = std::forward_iterator_tag;
         using value_type = const T;
-        using pointer = const T*;
-        using reference = const T&;
+        using pointer = value_type*;
+        using reference = value_type&;
 
         explicit const_iterator(const Node* const head)
             : cur(head) {}
@@ -93,8 +97,12 @@ class LinkedList {
             return !(*this == other);
         }
 
-        value_type& operator*() {
+        reference operator*() {
             return cur->data;
+        }
+
+        pointer operator->() {
+            return &cur->data;
         }
     };
 

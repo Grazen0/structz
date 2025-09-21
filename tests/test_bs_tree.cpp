@@ -330,6 +330,7 @@ TEST_CASE("Iterator postfix increment works") {
 
     SECTION("Iterator advances") {
         REQUIRE((*it).first == 2);
+        REQUIRE((*it).first == 2);
     }
 }
 
