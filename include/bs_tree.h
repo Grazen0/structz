@@ -262,7 +262,6 @@ public:
     }
 
     bool insert(K key, T value) {
-        Node* parent = nullptr;
         Node** cur = &m_root;
 
         while (*cur != nullptr) {
@@ -270,8 +269,6 @@ public:
                 (*cur)->value = std::move(value);
                 return false;
             }
-
-            parent = *cur;
 
             if (cmp(key, (*cur)->key))
                 cur = &(*cur)->left;
