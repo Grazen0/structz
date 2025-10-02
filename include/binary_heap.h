@@ -3,6 +3,7 @@
 
 #include <cstddef>
 #include <functional>
+#include <initializer_list>
 #include <stdexcept>
 #include <utility>
 #include "vec.h"
@@ -25,28 +26,36 @@ class BinaryHeap {
     }
 
     void bubble_up(const std::size_t idx) {
-        if (idx == 0)
-            return;
+        std::size_t cur_idx = idx;
 
-        const std::size_t paren = parent(idx);
+        while (cur_idx != 0) {
+            const std::size_t paren = parent(cur_idx);
 
-        if (cmp(data[idx], data[paren])) {
-            std::swap(data[idx], data[paren]);
-            bubble_up(paren);
+            if (!cmp(data[cur_idx], data[paren]))
+                break;
+
+            std::swap(data[cur_idx], data[paren]);
+            cur_idx = paren;
         }
     }
 
     void bubble_down(const std::size_t idx) {
-        const std::size_t le = left(idx);
-        const std::size_t ri = right(idx);
+        std::size_t cur_idx = idx;
 
-        if (le < data.size() && cmp(data[le], data[idx]) &&
-            (ri >= data.size() || cmp(data[le], data[ri]))) {
-            std::swap(data[le], data[idx]);
-            bubble_down(le);
-        } else if (ri < data.size() && cmp(data[ri], data[idx])) {
-            std::swap(data[ri], data[idx]);
-            bubble_down(ri);
+        while (true) {
+            const std::size_t le = left(cur_idx);
+            const std::size_t ri = right(cur_idx);
+
+            if (le < data.size() && cmp(data[le], data[cur_idx]) &&
+                (ri >= data.size() || cmp(data[le], data[ri]))) {
+                std::swap(data[le], data[cur_idx]);
+                cur_idx = le;
+            } else if (ri < data.size() && cmp(data[ri], data[cur_idx])) {
+                std::swap(data[ri], data[cur_idx]);
+                cur_idx = ri;
+            } else {
+                break;
+            }
         }
     }
 
@@ -57,6 +66,12 @@ public:
     using const_reverse_iterator = typename Vec<T>::const_reverse_iterator;
 
     BinaryHeap() = default;
+
+    BinaryHeap(std::initializer_list<T> elements)
+        : data(elements) {
+        for (std::size_t i = 0; i < data.size() / 2; ++i)
+            bubble_down((data.size() / 2) - 1 - i);
+    }
 
     [[nodiscard]] constexpr std::size_t size() const {
         return data.size();

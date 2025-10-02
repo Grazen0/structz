@@ -1,7 +1,9 @@
 #ifndef STRUCTZ_VECTOR_H
 #define STRUCTZ_VECTOR_H
 
+#include <algorithm>
 #include <cstddef>
+#include <initializer_list>
 #include <iterator>
 #include <stdexcept>
 #include <utility>
@@ -30,8 +32,7 @@ public:
         : m_capacity(other.m_capacity),
           m_size(other.m_size),
           m_data(m_capacity != 0 ? new T[m_capacity]() : nullptr) {
-        for (std::size_t i = 0; i < other.m_size; ++i)
-            m_data[i] = other.m_data[i];
+        std::copy(other.begin(), other.end(), begin());
     }
 
     Vec(Vec<T>&& other) noexcept {
@@ -42,6 +43,13 @@ public:
         : m_capacity(initial_size),
           m_size(initial_size),
           m_data(m_capacity != 0 ? new T[m_capacity]() : nullptr) {}
+
+    Vec(std::initializer_list<T> elements)
+        : m_capacity(elements.size()),
+          m_size(elements.size()),
+          m_data(m_capacity == 0 ? nullptr : new T[m_capacity]()) {
+        std::copy(elements.begin(), elements.end(), m_data);
+    }
 
     ~Vec() {
         delete[] std::exchange(m_data, nullptr);
@@ -69,6 +77,10 @@ public:
 
     [[nodiscard]] constexpr std::size_t size() const {
         return m_size;
+    }
+
+    [[nodiscard]] constexpr std::size_t capacity() const {
+        return m_capacity;
     }
 
     [[nodiscard]] constexpr bool is_empty() const {
@@ -124,8 +136,7 @@ public:
 
             T* const new_data = new T[new_capacity]();
 
-            for (std::size_t i = 0; i < m_size; ++i)
-                new_data[i] = m_data[i];
+            std::copy(m_data, &m_data[m_size], new_data);
 
             delete[] std::exchange(m_data, new_data);
 

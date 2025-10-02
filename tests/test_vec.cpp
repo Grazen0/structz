@@ -215,3 +215,16 @@ TEST_CASE("Vec with non-trivial types", "[vec]") {
     REQUIRE(popped.value == 20);
     REQUIRE(v.size() == 1);
 }
+
+TEST_CASE("Vec with initializer list constructor", "[vec]") {
+    Vec<int> v = {2, 5, 3, 7, 5};
+
+    REQUIRE(v.size() == 5);
+    REQUIRE(v.capacity() >= 5);
+
+    REQUIRE(v[0] == 2);
+    REQUIRE(v[1] == 5);
+    REQUIRE(v[2] == 3);
+    REQUIRE(v[3] == 7);
+    REQUIRE(v[4] == 5);
+}

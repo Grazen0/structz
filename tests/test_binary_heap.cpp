@@ -1,4 +1,5 @@
 #include <catch2/catch_test_macros.hpp>
+#include <iostream>
 #include "binary_heap.h"
 
 TEST_CASE("BinaryHeap basic properties", "[binary_heap]") {
@@ -356,4 +357,23 @@ TEST_CASE("BinaryHeap iterator stability during pops") {
 
         REQUIRE(vals.size() == 3);
     }
+}
+
+TEST_CASE("BinaryHeap initializer list constructor") {
+    BinaryHeap<int> heap = {2, 5, 3, 4, 7, 6, 1, 0};
+
+    for (auto el : heap)
+        std::cout << el << ' ';
+    std::cout << '\n';
+
+    REQUIRE(heap.size() == 8);
+
+    REQUIRE(heap.pop() == 0);
+    REQUIRE(heap.pop() == 1);
+    REQUIRE(heap.pop() == 2);
+    REQUIRE(heap.pop() == 3);
+    REQUIRE(heap.pop() == 4);
+    REQUIRE(heap.pop() == 5);
+    REQUIRE(heap.pop() == 6);
+    REQUIRE(heap.pop() == 7);
 }
