@@ -44,46 +44,43 @@ class AvlTree {
         node->height = 1 + std::max(height(node->left), height(node->right));
     }
 
-    static void rotate_left(Node** const x_ptr, Node* const z) {
-        Node* const x = *x_ptr;
+    static void rotate_left(Node*& x) {
+        Node* const x_prev = x;
+        Node* const z = x_prev->right;
 
-        *x_ptr = z;
-        x->right = z->left;
-        z->left = x;
+        x = z;
+        x_prev->right = z->left;
+        z->left = x_prev;
 
-        update_height(x);
+        update_height(x_prev);
         update_height(z);
     }
 
-    static void rotate_right(Node** const x_ptr, Node* const z) {
-        Node* const x = *x_ptr;
+    static void rotate_right(Node*& x) {
+        Node* const x_prev = x;
+        Node* const z = x_prev->left;
 
-        *x_ptr = z;
-        x->left = z->right;
-        z->right = x;
+        x = z;
+        x_prev->left = z->right;
+        z->right = x_prev;
 
-        update_height(x);
+        update_height(x_prev);
         update_height(z);
     }
 
-    static void rebalance(Node** const x) {
-        Node* const z =
-            height((*x)->left) > height((*x)->right) ? (*x)->left : (*x)->right;
+    static void rebalance(Node*& x) {
+        Node* const z = height(x->left) > height(x->right) ? x->left : x->right;
 
-        if (z == (*x)->right) {
-            if (bf(z) >= 0) {
-                rotate_left(x, z);
-            } else {
-                rotate_right(&(*x)->right, z->left);
-                rotate_left(x, (*x)->right);
-            }
-        } else if (z == (*x)->left) {
-            if (bf(z) <= 0) {
-                rotate_right(x, z);
-            } else {
-                rotate_left(&(*x)->left, z->right);
-                rotate_right(x, (*x)->left);
-            }
+        if (z == x->right) {
+            if (bf(z) < 0)
+                rotate_right(x->right);
+
+            rotate_left(x);
+        } else if (z == x->left) {
+            if (bf(z) > 0)
+                rotate_left(x->left);
+
+            rotate_right(x);
         }
     }
 
@@ -213,7 +210,7 @@ public:
             update_height(*node);
 
             if (std::abs(bf(*node)) > 1) {
-                rebalance(node);
+                rebalance(*node);
                 break;
             }
         }
@@ -263,7 +260,7 @@ public:
             update_height(*node);
 
             if (std::abs(bf(*node)) > 1)
-                rebalance(node);
+                rebalance(*node);
         }
 
         --m_size;
