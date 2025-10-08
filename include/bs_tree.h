@@ -56,8 +56,7 @@ public:
         }
 
         iterator& operator++() {
-            Node* cur = stack.top();
-            stack.pop();
+            Node* cur = stack.pop();
             cur = cur->right;
 
             while (cur != nullptr) {
@@ -113,8 +112,7 @@ public:
         }
 
         const_iterator& operator++() {
-            const Node* cur = stack.top();
-            stack.pop();
+            const Node* cur = stack.pop();
             cur = cur->right;
 
             while (cur != nullptr) {
