@@ -23,7 +23,7 @@ public:
         if (new_tail == head) {
             // Grow queue
             const std::size_t prev_size = size();
-            Vec<T> new_data(2 * prev_size);
+            Vec<T> new_data(2 * data.size());
 
             for (std::size_t i = 0; i < prev_size; ++i)
                 new_data[i] = std::move(data[(head + i) % data.size()]);
@@ -31,7 +31,7 @@ public:
             data = std::move(new_data);
             head = 0;
             tail = prev_size;
-            new_tail = tail + 1;
+            new_tail = (tail + 1) % data.size();
         }
 
         data[tail] = std::move(value);
