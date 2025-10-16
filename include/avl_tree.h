@@ -94,7 +94,7 @@ public:
 
     AvlTree(const AvlTree& other)
         : m_size(other.m_size) {
-        Vec<std::pair<Node**, Node*>> stack;
+        Stack<std::pair<Node**, Node*>> stack;
         stack.push({&m_root, other.m_root});
 
         while (!stack.is_empty()) {

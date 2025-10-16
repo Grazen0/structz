@@ -131,8 +131,7 @@ public:
 
     void push(T value) {
         if (m_size == m_capacity) {
-            const std::size_t new_capacity =
-                m_capacity == 0 ? 4 : 2 * m_capacity;
+            const std::size_t new_capacity = m_capacity == 0 ? 4 : 2 * m_capacity;
 
             T* const new_data = new T[new_capacity]();
 

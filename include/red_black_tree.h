@@ -206,8 +206,7 @@ public:
             if (src == nullptr)
                 continue;
 
-            *dest =
-                new Node(src->key, src->value, src->color, src->height, parent);
+            *dest = new Node(src->key, src->value, src->color, src->height, parent);
             stack.push({&(*dest)->left, src->left, *dest});
             stack.push({&(*dest)->right, src->right, *dest});
         }
@@ -322,8 +321,7 @@ public:
                 cur = &(*cur)->right;
         }
 
-        *cur =
-            new Node(std::move(key), std::move(value), Color::Red, 0, parent);
+        *cur = new Node(std::move(key), std::move(value), Color::Red, 0, parent);
 
         ++m_size;
         update_heights_upward(parent);

@@ -9,3 +9,4 @@ FixNamespaceComments: false
 AllowShortEnumsOnASingleLine: false
 NamespaceIndentation: All
 SpaceAfterTemplateKeyword: false
+ColumnLimit: 100

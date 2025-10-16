@@ -35,8 +35,7 @@ class HashMap {
     }
 
     [[nodiscard]] double fill_factor() const {
-        return static_cast<double>(m_used_buckets) /
-               static_cast<double>(m_buckets.size());
+        return static_cast<double>(m_used_buckets) / static_cast<double>(m_buckets.size());
     }
 
     void swap(HashMap<K, T>& other) noexcept {
@@ -99,15 +98,13 @@ public:
             }
         }
 
-        m_buckets[index].push_front(
-            Entry(std::move(key), hash, std::move(value)));
+        m_buckets[index].push_front(Entry(std::move(key), hash, std::move(value)));
         ++m_size;
 
         if (m_buckets[index].size() == 1)
             ++m_used_buckets;
 
-        if (m_buckets[index].size() > MAX_COLLISIONS ||
-            fill_factor() > MAX_FILL_FACTOR)
+        if (m_buckets[index].size() > MAX_COLLISIONS || fill_factor() > MAX_FILL_FACTOR)
             rehash();
 
         return true;
