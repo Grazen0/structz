@@ -146,3 +146,12 @@ TEST_CASE("Teacher's test #3", "[btree]") {
     REQUIRE(btree.check_properties());
     REQUIRE(btree.to_string() == "1,2,3,4,5,6,7,8,9,10,11,12,13,14,15,16,17,18,19,20");
 }
+
+TEST_CASE("insertion", "[btree]") {
+    using BTree = BTree<int, int>;
+
+    BTree btree;
+
+    btree.insert(1, 1);
+    btree.insert(1, 1);
+}

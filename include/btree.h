@@ -2,9 +2,12 @@
 #define STRUCTZ_BTREE
 
 #include <array>
+#include <cmath>
 #include <cstddef>
 #include <functional>
 #include <initializer_list>
+#include <iterator>
+#include <optional>
 #include <stdexcept>
 #include <string>
 #include <utility>
@@ -73,6 +76,24 @@ public:
         throw std::runtime_error("Key not found");
     }
 
+    [[nodiscard]] static const K& min_key(const Node* const node) {
+        const Node* cur = node;
+
+        while (!cur->is_leaf)
+            cur = cur->children[0];
+
+        return cur->entries[0].key;
+    }
+
+    [[nodiscard]] static const K& max_key(const Node* const node) {
+        const Node* cur = node;
+
+        while (!cur->is_leaf)
+            cur = cur->children[cur->entry_count];
+
+        return cur->entries[cur->entry_count - 1].key;
+    }
+
     static std::string to_string(const Node* const node, const std::string& sep = ",") {
         if (node == nullptr)
             return "";
@@ -122,10 +143,157 @@ public:
         std::swap(m_size, other.m_size);
     }
 
-    static BTree build_from_ordered_vector(const Vec<std::pair<K, T>>& elements) {
-        BTree out;
+    // template<typename Iter>
+    // static Node* build_node_from_ordered_iterator(const Iter& begin, const Iter& end) {
+    //     const std::size_t n = std::distance(begin, end);
+    //
+    //     if (n == 0)
+    //         return nullptr;
+    //
+    //     const std::size_t partition_size = n / M;
+    //
+    //     Node* const node = new Node();
+    //
+    //     for (std::size_t i = 0; i < M; ++i) {
+    //         const std::size_t base = i * partition_size;
+    //     }
+    //
+    //     return node;
+    // }
 
-        return out;
+    std::pair<bool, std::optional<std::pair<Entry, Node*>>> insert(Node* const node,
+                                                                   K key,
+                                                                   T value) {
+        std::size_t i = 0;
+        while (i < node->entry_count && cmp(node->entries[i].key, key))
+            ++i;
+
+        if (i < node->entry_count && node->entries[i].key == key) {
+            // Key already exists, replace value
+            node->entries[i].value = std::move(value);
+            return {false, std::nullopt};
+        }
+
+        if (!node->is_leaf) {
+            // Didn't find key here, go down.
+            auto& [result, split] = insert(node->children[i], std::move(key), std::move(value));
+
+            if (split) {
+                // TODO: handle split
+            }
+
+            return result;
+        }
+
+        // Didn't find but we're already at a leaf!! Insert here.
+        if (node->entry_count < M - 1) {
+            // There still is space to insert.
+            for (std::size_t j = i + 1; j < node->entry_count + 1; ++j)
+                node->entries[j] = std::move(node->entries[j - 1]);
+
+            node->entries[i] = Entry(std::move(key), std::move(value));
+            ++node->entry_count;
+            return {true, std::nullopt};
+        }
+
+        // No space left to insert, do split.
+        // FIX: mid might be the newly inserted element
+        Entry mid = std::move(node->entries[(M - 1) / 2]);
+
+        Node* const split_node = new Node();
+
+        node->entry_count = node->entry_count / 2;
+
+        return {
+            true, {mid, split_node}
+        };
+    }
+
+    [[nodiscard]] std::size_t height(const Node* const node) const {
+        std::size_t height = 0;
+        const Node* cur = node;
+
+        while (cur != nullptr) {
+            cur = cur->children[0];
+            ++height;
+        }
+
+        return height;
+    }
+
+    [[nodiscard]] bool check_properties(const Node* const node) const {
+        const std::size_t min_entries = node == m_root ? 1 : std::ceil(M / 2.0) - 1;
+        const std::size_t max_entries = M - 1;
+
+        // Check entry count
+        if (node->entry_count < min_entries || node->entry_count > max_entries)
+            return false;
+
+        // Keys must be ordered
+        for (std::size_t i = 0; i < node->entry_count - 1; ++i) {
+            if (!cmp(node->entries[i].key, node->entries[i + 1].key))
+                return false;
+        }
+
+        if (!node->is_leaf) {
+            // Non-leaf nodes must have entry_count + 1 children
+            for (std::size_t i = 0; i < node->entry_count + 1; ++i) {
+                if (node->children[i] == nullptr)
+                    return false;
+            }
+
+            // Check properties recursively
+            for (std::size_t i = 0; i < node->entry_count + 1; ++i) {
+                if (!check_properties(node->children[i]))
+                    return false;
+            }
+
+            const std::size_t expected_height = height(node->children[0]);
+
+            // Subtree heights should be equal
+            for (std::size_t i = 1; i < node->entry_count + 1; ++i) {
+                // NOTE: esta llamada es costosa. Podría aplicarse un caché o algo parecido, pero no
+                // estamos considerando mucho el costo de check_properties.
+                if (height(node->children[i]) != expected_height)
+                    return false;
+            }
+
+            // Leftmost subtree should be less than first key
+            if (!cmp(max_key(node->children[0]), node->entries[0].key))
+                return false;
+
+            // Rightmost subtree should be greater than last key
+            if (!cmp(min_key(node->children[node->entry_count]),
+                     node->entries[node->entry_count - 1].key))
+                return false;
+
+            // Check that subtrees go inside the correct entries
+            for (std::size_t i = 1; i < node->entry_count; ++i) {
+                const K& min = min_key(node->children[i]);
+                const K& max = max_key(node->children[i]);
+
+                if (!cmp(node->entries[i - 1].key, min) || !cmp(max, node->entries[i].key))
+                    return false;
+            }
+
+        } else {
+            // Leaf nodes should have no children
+            for (std::size_t i = 0; i < node->entry_count + 1; ++i) {
+                if (node->children[i] != nullptr)
+                    return false;
+            }
+        }
+
+        return true;
+    }
+
+    static BTree build_from_ordered_vector(const Vec<std::pair<K, T>>& elements) {
+        BTree result;
+
+        for (const auto& el : elements)
+            result.insert(el.first, el.second);
+
+        return result;
     }
 
 public:
@@ -192,15 +360,7 @@ public:
     }
 
     [[nodiscard]] std::size_t height() const {
-        std::size_t height = 0;
-        Node* cur = m_root;
-
-        while (cur != nullptr) {
-            cur = cur->children[0];
-            ++height;
-        }
-
-        return height;
+        return height(m_root);
     }
 
     [[nodiscard]] constexpr bool is_empty() const {
@@ -208,8 +368,10 @@ public:
     }
 
     [[nodiscard]] bool check_properties() const {
-        // TODO: implement
-        return true;
+        if (m_root == nullptr)
+            return true;
+
+        return check_properties(m_root);
     }
 
     [[nodiscard]] bool contains_key(const K& key) const {
@@ -258,34 +420,36 @@ public:
         return out;
     }
 
-    const K& min_key() const {
+    [[nodiscard]] const K& min_key() const {
         if (m_root == nullptr)
             throw std::runtime_error("BTree is empty");
 
-        const Node* cur = m_root;
-
-        while (!cur->is_leaf)
-            cur = cur->children[0];
-
-        return cur->entries[0].key;
+        return min_key(m_root);
     }
 
-    const K& max_key() const {
+    [[nodiscard]] const K& max_key() const {
         if (m_root == nullptr)
             throw std::runtime_error("BTree is empty");
 
-        const Node* cur = m_root;
-
-        while (!cur->is_leaf)
-            cur = cur->children[cur->entry_count];
-
-        return cur->entries[cur->entry_count].key;
+        return max_key(m_root);
     }
 
-    // bool insert(K key, T value) {
-    //     Node* cur = m_root;
-    //     // TODO: implement
-    // }
+    bool insert(K key, T value) {
+        if (m_root == nullptr) {
+            m_root = new Node({
+                {key, value}
+            });
+            ++m_size;
+            return true;
+        }
+
+        const bool result = insert(m_root, key, value);
+
+        if (result)
+            ++m_size;
+
+        return result;
+    }
 
     void clear() {
         BTree().swap(*this);
