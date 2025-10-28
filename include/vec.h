@@ -87,42 +87,58 @@ public:
         return m_size == 0;
     }
 
-    constexpr T& operator[](const std::size_t index) {
+    [[nodiscard]] bool operator==(const Vec& other) const {
+        if (m_size != other.m_size)
+            return false;
+
+        for (std::size_t i = 0; i < m_size; ++i) {
+            if (m_data[i] != other.m_data[i])
+                return false;
+        }
+
+        return true;
+    }
+
+    [[nodiscard]] bool operator!=(const Vec& other) const {
+        return !(*this == other);
+    }
+
+    [[nodiscard]] constexpr T& operator[](const std::size_t index) {
         if (index >= m_size)
             throw std::out_of_range("Index out of bounds");
 
         return m_data[index];
     }
 
-    const T& operator[](const std::size_t index) const {
+    [[nodiscard]] constexpr const T& operator[](const std::size_t index) const {
         if (index >= m_size)
             throw std::out_of_range("Index out of bounds");
 
         return m_data[index];
     }
 
-    constexpr T& first() {
+    [[nodiscard]] constexpr T& first() {
         if (m_size == 0)
             throw std::out_of_range("Vector is empty");
 
         return m_data[0];
     }
 
-    constexpr const T& first() const {
+    [[nodiscard]] constexpr const T& first() const {
         if (m_size == 0)
             throw std::out_of_range("Vector is empty");
 
         return m_data[0];
     }
 
-    constexpr T& last() {
+    [[nodiscard]] constexpr T& last() {
         if (m_size == 0)
             throw std::out_of_range("Vector is empty");
 
         return m_data[m_size - 1];
     }
 
-    constexpr const T& last() const {
+    [[nodiscard]] constexpr const T& last() const {
         if (m_size == 0)
             throw std::out_of_range("Vector is empty");
 

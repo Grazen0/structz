@@ -11,6 +11,7 @@ add_library(structz
     src/avl_tree.cpp
     src/binary_heap.cpp
     src/bs_tree.cpp
+    src/btree.cpp
     src/circular_list.cpp
     src/doubly_linked_list.cpp
     src/hash_map.cpp

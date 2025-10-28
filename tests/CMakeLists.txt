@@ -4,6 +4,7 @@ set(TEST_SOURCES
     test_avl_tree.cpp
     test_binary_heap.cpp
     test_bs_tree.cpp
+    test_btree.cpp
     test_circular_list.cpp
     test_linked_list.cpp
     test_hash_map.cpp

@@ -3,17 +3,22 @@
 
 #include <array>
 #include <cstddef>
+#include <functional>
+#include <initializer_list>
 #include <stdexcept>
 #include <string>
 #include <utility>
 #include "stack.h"
 #include "vec.h"
 
-template<typename K, typename T, std::size_t M = 5>
+template<typename K, typename T, typename Compare = std::less<K>, std::size_t M = 5>
 class BTree {
+public:
     struct Entry {
         K key;
         T value;
+
+        Entry() = default;
 
         Entry(K key, T value)
             : key(std::move(key)),
@@ -25,10 +30,26 @@ class BTree {
         std::array<Node*, M> children{nullptr};
         std::size_t entry_count = 0;
         bool is_leaf = true;
+
+        Node(std::initializer_list<std::pair<K, T>> elements)
+            : entry_count(elements.size()) {
+            std::size_t i = 0;
+
+            for (auto& [key, value] : elements) {
+                entries[i] = Entry(key, value);
+                ++i;
+            }
+        }
+
+        void link_child(const std::size_t idx, std::initializer_list<std::pair<K, T>> elements) {
+            is_leaf = false;
+            children[idx] = new Node(elements);
+        }
     };
 
     std::size_t m_size = 0;
     Node* m_root = nullptr;
+    Compare cmp{};
 
     template<typename Self>
     static auto& get(Self& self, const K& key) {
@@ -37,7 +58,7 @@ class BTree {
         while (cur != nullptr) {
             std::size_t i = 0;
 
-            while (i < cur->entry_count && cur->entries[i].key < key)
+            while (i < cur->entry_count && self.cmp(cur->entries[i].key, key))
                 ++i;
 
             if (i < cur->entry_count && cur->entries[i].key == key)
@@ -52,7 +73,7 @@ class BTree {
         throw std::runtime_error("Key not found");
     }
 
-    static std::string to_string(const Node* const node, const std::string& sep = ", ") {
+    static std::string to_string(const Node* const node, const std::string& sep = ",") {
         if (node == nullptr)
             return "";
 
@@ -60,32 +81,40 @@ class BTree {
 
         for (std::size_t i = 0; i < node->entry_count; ++i) {
             if (!node->is_leaf)
-                result += to_string(node->children[i], sep);
+                result += to_string(node->children[i], sep) + sep;
 
-            result += std::to_string(node->entries[i].key) + sep;
+            result += std::to_string(node->entries[i].key);
+
+            if (i < node->entry_count - 1)
+                result += sep;
         }
 
         if (!node->is_leaf)
-            result += to_string(node->children[node->entry_count]);
+            result += sep + to_string(node->children[node->entry_count]);
 
         return result;
     }
 
-    void range_search(Node* const node, Vec<std::pair<K&, T&>> out, const K& begin, const K& end) {
-        if (node == nullptr)
-            return;
-
-        // TODO: implement
-    }
-
-    void range_search(const Node* const node,
-                      Vec<std::pair<K&, T&>> out,
+    template<typename Self>
+    void range_search(Self& self,
+                      Node* const node,
+                      Vec<std::pair<const K*, T*>>& out,
                       const K& begin,
                       const K& end) {
         if (node == nullptr)
             return;
 
-        // TODO: implement
+        for (std::size_t i = 0; i < node->entry_count; ++i) {
+            auto& entry = node->entries[i];
+
+            if (self.cmp(begin, entry.key))
+                range_search(self, node->children[i], out, begin, end);
+
+            if (!self.cmp(entry.key, begin) && !self.cmp(end, entry.key))
+                out.push({&entry.key, &entry.value});
+        }
+
+        range_search(self, node->children[node->entry_count], out, begin, end);
     }
 
     void swap(BTree& other) noexcept {
@@ -93,8 +122,17 @@ class BTree {
         std::swap(m_size, other.m_size);
     }
 
+    static BTree build_from_ordered_vector(const Vec<std::pair<K, T>>& elements) {
+        BTree out;
+
+        return out;
+    }
+
 public:
     BTree() = default;
+
+    explicit BTree(Node* const root)
+        : m_root(root) {}
 
     BTree(const BTree& other)
         : m_size(other.m_size) {
@@ -153,17 +191,34 @@ public:
         return m_size;
     }
 
+    [[nodiscard]] std::size_t height() const {
+        std::size_t height = 0;
+        Node* cur = m_root;
+
+        while (cur != nullptr) {
+            cur = cur->children[0];
+            ++height;
+        }
+
+        return height;
+    }
+
     [[nodiscard]] constexpr bool is_empty() const {
         return m_size == 0;
     }
 
-    [[nodiscard]] bool contains(const K& key) const {
-        Node* cur = m_root;
+    [[nodiscard]] bool check_properties() const {
+        // TODO: implement
+        return true;
+    }
+
+    [[nodiscard]] bool contains_key(const K& key) const {
+        const Node* cur = m_root;
 
         while (cur != nullptr) {
             std::size_t i = 0;
 
-            while (i < cur->entry_count && cur->entries[i].key < key)
+            while (i < cur->entry_count && cmp(cur->entries[i].key, key))
                 ++i;
 
             if (i < cur->entry_count && cur->entries[i].key == key)
@@ -190,22 +245,47 @@ public:
         return to_string(m_root);
     }
 
-    [[nodiscard]] Vec<std::pair<K&, T&>> range_search(const K& begin, const K& end) {
-        Vec<std::pair<K&, T&>> out;
-        range_search(m_root, out, begin, end);
+    [[nodiscard]] Vec<std::pair<const K*, T*>> range_search(const K& begin, const K& end) {
+        Vec<std::pair<const K*, T*>> out;
+        range_search(*this, m_root, out, begin, end);
         return out;
     }
 
-    [[nodiscard]] Vec<std::pair<const K&, const T&>> range_search(const K& begin,
+    [[nodiscard]] Vec<std::pair<const K*, const T*>> range_search(const K& begin,
                                                                   const K& end) const {
-        Vec<std::pair<const K&, const T&>> out;
-        range_search(m_root, out, begin, end);
+        Vec<std::pair<const K*, const T*>> out;
+        range_search(*this, m_root, out, begin, end);
         return out;
     }
 
-    bool insert(K key, T value) {
-        Node* cur = m_root;
+    const K& min_key() const {
+        if (m_root == nullptr)
+            throw std::runtime_error("BTree is empty");
+
+        const Node* cur = m_root;
+
+        while (!cur->is_leaf)
+            cur = cur->children[0];
+
+        return cur->entries[0].key;
     }
+
+    const K& max_key() const {
+        if (m_root == nullptr)
+            throw std::runtime_error("BTree is empty");
+
+        const Node* cur = m_root;
+
+        while (!cur->is_leaf)
+            cur = cur->children[cur->entry_count];
+
+        return cur->entries[cur->entry_count].key;
+    }
+
+    // bool insert(K key, T value) {
+    //     Node* cur = m_root;
+    //     // TODO: implement
+    // }
 
     void clear() {
         BTree().swap(*this);
