@@ -1,22 +1,21 @@
 #ifndef STRUCTZ_BTREE
 #define STRUCTZ_BTREE
 
+#include <algorithm>
 #include <array>
 #include <cmath>
 #include <cstddef>
 #include <functional>
 #include <initializer_list>
-#include <iterator>
-#include <optional>
 #include <stdexcept>
 #include <string>
 #include <utility>
+#include <variant>
 #include "stack.h"
 #include "vec.h"
 
 template<typename K, typename T, typename Compare = std::less<K>, std::size_t M = 5>
 class BTree {
-public:
     struct Entry {
         K key;
         T value;
@@ -33,6 +32,8 @@ public:
         std::array<Node*, M> children{nullptr};
         std::size_t entry_count = 0;
         bool is_leaf = true;
+
+        Node() = default;
 
         Node(std::initializer_list<std::pair<K, T>> elements)
             : entry_count(elements.size()) {
@@ -111,7 +112,7 @@ public:
         }
 
         if (!node->is_leaf)
-            result += sep + to_string(node->children[node->entry_count]);
+            result += sep + to_string(node->children[node->entry_count], sep);
 
         return result;
     }
@@ -143,70 +144,85 @@ public:
         std::swap(m_size, other.m_size);
     }
 
-    // template<typename Iter>
-    // static Node* build_node_from_ordered_iterator(const Iter& begin, const Iter& end) {
-    //     const std::size_t n = std::distance(begin, end);
-    //
-    //     if (n == 0)
-    //         return nullptr;
-    //
-    //     const std::size_t partition_size = n / M;
-    //
-    //     Node* const node = new Node();
-    //
-    //     for (std::size_t i = 0; i < M; ++i) {
-    //         const std::size_t base = i * partition_size;
-    //     }
-    //
-    //     return node;
-    // }
+    std::variant<bool, std::pair<Entry, Node*>> insert(Node* const node, K key, T value) {
+        if (node == nullptr)
+            return std::pair{Entry(std::move(key), std::move(value)), nullptr};
 
-    std::pair<bool, std::optional<std::pair<Entry, Node*>>> insert(Node* const node,
-                                                                   K key,
-                                                                   T value) {
         std::size_t i = 0;
         while (i < node->entry_count && cmp(node->entries[i].key, key))
             ++i;
 
         if (i < node->entry_count && node->entries[i].key == key) {
-            // Key already exists, replace value
             node->entries[i].value = std::move(value);
-            return {false, std::nullopt};
+            return false;
         }
 
-        if (!node->is_leaf) {
-            // Didn't find key here, go down.
-            auto& [result, split] = insert(node->children[i], std::move(key), std::move(value));
+        auto result = insert(node->children[i], std::move(key), std::move(value));
 
-            if (split) {
-                // TODO: handle split
+        if (std::holds_alternative<bool>(result))
+            return result;
+
+        auto& [new_entry, new_child] = std::get<std::pair<Entry, Node*>>(result);
+
+        if (node->entry_count < M - 1) {
+            node->children[node->entry_count + 1] = node->children[node->entry_count];
+
+            for (std::size_t j = node->entry_count; j > i; --j) {
+                node->entries[j] = std::move(node->entries[j - 1]);
+                node->children[j] = node->children[j - 1];
             }
 
-            return result;
-        }
-
-        // Didn't find but we're already at a leaf!! Insert here.
-        if (node->entry_count < M - 1) {
-            // There still is space to insert.
-            for (std::size_t j = i + 1; j < node->entry_count + 1; ++j)
-                node->entries[j] = std::move(node->entries[j - 1]);
-
-            node->entries[i] = Entry(std::move(key), std::move(value));
+            node->entries[i] = std::move(new_entry);
+            node->children[i] = new_child;
             ++node->entry_count;
-            return {true, std::nullopt};
+
+            return true;
         }
 
-        // No space left to insert, do split.
-        // FIX: mid might be the newly inserted element
-        Entry mid = std::move(node->entries[(M - 1) / 2]);
+        std::array<Entry, M> entries_tmp;
+        std::array<Node*, M + 1> children_tmp{};
+        std::size_t e = 0;
+        bool new_entry_pending = true;
 
-        Node* const split_node = new Node();
+        for (std::size_t j = 0; j < M; ++j) {
+            if (new_entry_pending &&
+                (e >= node->entry_count || cmp(new_entry.key, node->entries[e].key))) {
+                entries_tmp[j] = std::move(new_entry);
+                children_tmp[j] = new_child;
+                new_entry_pending = false;
+            } else {
+                entries_tmp[j] = std::move(node->entries[e]);
+                children_tmp[j] = std::exchange(node->children[e], nullptr);
+                ++e;
+            }
+        }
 
-        node->entry_count = node->entry_count / 2;
+        children_tmp[M] = std::exchange(node->children[M - 1], nullptr);
 
-        return {
-            true, {mid, split_node}
-        };
+        const std::size_t mid = (M - 1) / 2;
+        const Entry lifted = std::move(entries_tmp[mid]);
+
+        Node* const left_split = new Node();
+        left_split->is_leaf = node->is_leaf;
+
+        left_split->entry_count = mid;
+        node->entry_count = M - 1 - mid;
+
+        for (std::size_t i = 0; i < left_split->entry_count; ++i) {
+            left_split->entries[i] = std::move(entries_tmp[i]);
+            left_split->children[i] = children_tmp[i];
+        }
+
+        left_split->children[left_split->entry_count] = children_tmp[mid];
+
+        for (std::size_t i = 0; i < node->entry_count; ++i) {
+            node->entries[i] = std::move(entries_tmp[mid + 1 + i]);
+            node->children[i] = children_tmp[mid + 1 + i];
+        }
+
+        node->children[node->entry_count] = children_tmp[M];
+
+        return std::pair{lifted, left_split};
     }
 
     [[nodiscard]] std::size_t height(const Node* const node) const {
@@ -222,6 +238,9 @@ public:
     }
 
     [[nodiscard]] bool check_properties(const Node* const node) const {
+        if (node == nullptr)
+            return true;
+
         const std::size_t min_entries = node == m_root ? 1 : std::ceil(M / 2.0) - 1;
         const std::size_t max_entries = M - 1;
 
@@ -262,9 +281,9 @@ public:
             if (!cmp(max_key(node->children[0]), node->entries[0].key))
                 return false;
 
-            // Rightmost subtree should be greater than last key
-            if (!cmp(min_key(node->children[node->entry_count]),
-                     node->entries[node->entry_count - 1].key))
+            // Last key should be less than rightmost subtree
+            if (!cmp(node->entries[node->entry_count - 1].key,
+                     min_key(node->children[node->entry_count])))
                 return false;
 
             // Check that subtrees go inside the correct entries
@@ -287,6 +306,7 @@ public:
         return true;
     }
 
+public:
     static BTree build_from_ordered_vector(const Vec<std::pair<K, T>>& elements) {
         BTree result;
 
@@ -296,7 +316,6 @@ public:
         return result;
     }
 
-public:
     BTree() = default;
 
     explicit BTree(Node* const root)
@@ -368,9 +387,6 @@ public:
     }
 
     [[nodiscard]] bool check_properties() const {
-        if (m_root == nullptr)
-            return true;
-
         return check_properties(m_root);
     }
 
@@ -435,21 +451,33 @@ public:
     }
 
     bool insert(K key, T value) {
-        if (m_root == nullptr) {
-            m_root = new Node({
-                {key, value}
-            });
-            ++m_size;
-            return true;
+        const auto result = insert(m_root, key, value);
+
+        if (const bool* const inserted = std::get_if<bool>(&result)) {
+            if (*inserted)
+                ++m_size;
+
+            return *inserted;
         }
 
-        const bool result = insert(m_root, key, value);
+        auto [new_entry, new_child] = std::get<std::pair<Entry, Node*>>(result);
 
-        if (result)
-            ++m_size;
+        Node* const new_root = new Node();
+        new_root->is_leaf = new_child == nullptr;
 
-        return result;
+        new_root->entries[0] = std::move(new_entry);
+        new_root->entry_count = 1;
+
+        new_root->children[0] = new_child;
+        new_root->children[1] = m_root;
+
+        m_root = new_root;
+
+        ++m_size;
+        return true;
     }
+
+    // bool remove(const K& key) {}
 
     void clear() {
         BTree().swap(*this);
