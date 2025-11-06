@@ -20,6 +20,7 @@ add_library(structz
     src/queue.cpp
     src/red_black_tree.cpp
     src/stack.cpp
+    src/trie.cpp
     src/vec.cpp)
 target_include_directories(structz PUBLIC  
     $<BUILD_INTERFACE:${CMAKE_CURRENT_SOURCE_DIR}/include>
