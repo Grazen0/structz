@@ -288,7 +288,7 @@ class BTree {
         // Only here we might need to fix properties.
         // (This is the actually hard part)
 
-        static constexpr std::size_t MIN_KEYS = std::ceil(M / 2.0) - 1;
+        static const std::size_t MIN_KEYS = std::ceil(M / 2.0) - 1;
 
         Node* const mid = node->children[i];
 
